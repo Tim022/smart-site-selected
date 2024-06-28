@@ -1,0 +1,120 @@
+.searchArea {
+  background-color: #454B52;
+  transition: All 0.3s;
+  position: absolute;
+  top: 90px;
+  left: 32px;
+  z-index: 1000;
+}
+
+.searchAreaClose {
+  width: 112px;
+  height: 38px;
+  border-radius: 100px;
+  box-shadow: 0px 0px 4px 0px #FFFFFF40 inset;
+}
+
+.searchAreaExpand {
+  width: 400px;
+  height: 432px;
+  border-radius: 6px;
+  box-shadow: 0px 0px 5px 0px #00000033;
+}
+
+.searchBeginButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #454B52;
+  box-shadow: 0px 0px 4px 0px #FFFFFF40 inset;
+  padding: 10px 16px;
+  border-radius: 100px;
+  font-family: 'Noto Sans TC';
+  font-size: 14px;
+  font-weight: 400;
+  color: #FFFFFF;
+  line-height: normal;
+  gap: 8px;
+}
+
+.searchBeginText {
+  animation: changeFont 0.3s forwards;
+  font-family: 'Noto Sans CJK TC';
+}
+
+.mapLoadingContainer {
+  width: 1519px;
+  height: 738px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mapLoadingSpinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #333;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+.mapContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mapLoadingMask {
+  z-index: 9999999;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+  /* 半透明白色背景 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.searchMethodSelectedBackground {
+  width: 174px;
+  height: 32px;
+  border-radius: 100px;
+  background: #2B2F33;
+  box-shadow: 0px 2px 8px 0px #0000000D;
+  position: absolute;
+  z-index: 1;
+  transition: All 0.3s;
+}
+
+.searchMethodSwitch1 {
+  margin-left: 2px;
+}
+
+.searchMethodSwitch2 {
+  margin-left: 176px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes changeFont {
+  0% {
+    font-size: 14px;
+    font-weight: 400;
+    color: #00000000;
+  }
+
+  100% {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFF;
+  }
+}
