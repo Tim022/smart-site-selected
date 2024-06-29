@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react'
-import { GoogleMap, useLoadScript, PolygonF } from '@react-google-maps/api'
+import { GoogleMap, useLoadScript, PolygonF,PolylineF } from '@react-google-maps/api'
 import axios from 'axios';
 import { SearchControl } from '@/components/Search/search'
 import styles from '@/pages/polygontest/styles.module.css'
@@ -197,6 +197,7 @@ export default function App() {
   let mapInstance;
 
   const [polygons, setPolygons] = useState([]);
+  const [polylines, setPolylines] = useState([]);
   const [isDrawed, setIsDrawed] = useState(true);
   const [zoom, setZoom] = useState(8);
   useEffect(() => {
@@ -234,6 +235,23 @@ export default function App() {
 
           // console.log(fetchedPolygons)
           setPolygons(fetchedPolygons);
+
+          const responseL = await axios.get('http://localhost:3000/taiwan_road.geojson'); // Replace with your GeoJSON URL
+          const geoJsonDataL = responseL.data;
+          // console.log(geoJsonDataL)
+
+          // Extract polylines from GeoJSON data
+          const fetchedPolylines = geoJsonDataL.features.map(feature => ({
+            paths: feature.geometry.coordinates[0].map(latlon => ({ lat: latlon[1], lng: latlon[0] })),
+            options: {
+              strokeColor: '#FF0000', // 線條顏色
+              strokeOpacity: 1.0,
+              strokeWeight: 2
+            },
+          }));
+
+          // console.log(fetchedPolylines)
+          setPolylines(fetchedPolylines);
           setTimeout(() => {
             setIsDrawed(true)
           }, 1000);
@@ -323,6 +341,13 @@ export default function App() {
             key={index}
             paths={polygon.paths}
             options={polygon.options}
+          />
+        ))}
+        {polylines.map((polyline, index) => (
+          <PolylineF
+            key={index}
+            path={polyline.paths}
+            options={polyline.options}
           />
         ))}
 
