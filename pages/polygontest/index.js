@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from 'react'
-import { GoogleMap, useLoadScript, PolygonF,PolylineF } from '@react-google-maps/api'
+import { GoogleMap, useLoadScript, PolygonF,PolylineF,StandaloneSearchBox  } from '@react-google-maps/api'
 import axios from 'axios';
 import { SearchControl } from '@/components/Search/search'
 import styles from '@/pages/polygontest/styles.module.css'
+
+const libraries = ["visualization", "drawing", "places"];  //要寫出來不然會報效能問題
 
 const mapOptions = {
   disableDefaultUI: true,
@@ -184,38 +186,47 @@ const containerStyle = {
   height: '738px'
 };
 
-const center = {
-  lat: 23.614090,
-  lng: 120.861217
-};
+
 
 export default function App() {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: "AIzaSyC_Djjbddb_8D1SdiuU40ysEpRhaJo9NHs",
-    libraries: ["visualization", "drawing"],
+    libraries: libraries,
   })
   let mapInstance;
+
+  const [center,setCenter] = useState({
+    lat: 23.614090,
+    lng: 120.861217
+  })
+  // const center = {
+  //   lat: 23.614090,
+  //   lng: 120.861217
+  // };
 
   const [polygons, setPolygons] = useState([]);
   const [polylines, setPolylines] = useState([]);
   const [isDrawed, setIsDrawed] = useState(true);
   const [zoom, setZoom] = useState(8);
   useEffect(() => {
+    var polygonFetchUrl = "http://localhost:3000/taiwan_district_boundaries.geojson"
     if (zoom == 8 || zoom > 10) {
 
       if (zoom == 8) {
+        polygonFetchUrl = "http://localhost:3000/taiwan_district_boundaries.geojson"
         // setIsDrawed(false)
       }
 
       if (zoom > 10) {
+        polygonFetchUrl = "http://localhost:3000/taiwan_village_boundaries.geojson"
         setTimeout(() => {
           setIsDrawed(false)
-        }, 2000);
+        }, 1500);
       }
 
       const fetchData = async () => {
         try {
-          const response = await axios.get('http://localhost:3000/taiwan_district_boundaries.geojson'); // 市區
+          const response = await axios.get(polygonFetchUrl); // 市區
           // const response = await axios.get('http://localhost:3000/taiwan_village_boundaries.geojson'); // 村里
 
           const geoJsonData = response.data;
@@ -317,6 +328,26 @@ export default function App() {
 
   }
 
+  const [searchBox, setSearchBox] = useState(null);
+
+  const handleOnLoad = (ref) => {
+    setSearchBox(ref);
+  };
+
+  const onPlacesChanged = () => {
+    const places = searchBox?.getPlaces();
+    if (places?.length > 0) {
+      const { lat, lng } = places[0].geometry.location;
+      console.log('Latitude:', lat());
+      console.log('Longitude:', lng());
+      setCenter({
+        lat: lat(),
+        lng: lng()
+      })
+      setZoom(11)
+    }
+  };
+
   return isLoaded ? (
     <div className={styles.mapContainer}>
       {!isDrawed ? (
@@ -328,7 +359,7 @@ export default function App() {
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
-        zoom={8}
+        zoom={zoom}
         // onLoad={onLoad}
         options={mapOptions}
         onLoad={handleLoad}
@@ -354,6 +385,30 @@ export default function App() {
         <SearchControl
           onSubmit={handleSubmit}
         />
+        <StandaloneSearchBox
+          onLoad={handleOnLoad}
+          onPlacesChanged={onPlacesChanged}
+        >
+          <input
+            type="text"
+            placeholder="搜尋地址"
+            style={{
+              boxSizing: 'border-box',
+              border: '1px solid transparent',
+              width: '240px',
+              height: '32px',
+              padding: '0 12px',
+              borderRadius: '3px',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+              fontSize: '14px',
+              outline: 'none',
+              textOverflow: 'ellipses',
+              position: 'absolute',
+              left: '50%',
+              marginLeft: '-120px'
+            }}
+          />
+        </StandaloneSearchBox>
       </GoogleMap>
     </div>
   ) : (
