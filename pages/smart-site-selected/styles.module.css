@@ -21,6 +21,13 @@
   box-shadow: 0px 0px 5px 0px #00000033;
 }
 
+.searchAreaExpandResult {
+  width: 400px;
+  height: 542px;
+  border-radius: 6px;
+  box-shadow: 0px 0px 5px 0px #00000033;
+}
+
 .searchBeginButton {
   display: flex;
   justify-content: center;
@@ -40,6 +47,21 @@
 .searchBeginText {
   animation: changeFont 0.3s forwards;
   font-family: 'Noto Sans CJK TC';
+  margin-right: auto;
+  line-height: normal;
+}
+
+.searchResultText {
+  font-family: 'Noto Sans CJK TC';
+  margin-right: auto;
+  line-height: normal;
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFF;
+}
+
+.addressSearchTabs :global(.ant-tabs-nav) {
+  display: none;
 }
 
 .mapLoadingContainer {
@@ -97,6 +119,33 @@
 
 .searchMethodSwitch2 {
   margin-left: 176px;
+}
+
+.resultTypeSelectedBackground {
+  width: 116px;
+  height: 32px;
+  border-radius: 100px;
+  background: #2B2F33;
+  box-shadow: 0px 2px 8px 0px #0000000D;
+  position: absolute;
+  z-index: 1;
+  transition: All 0.3s;
+}
+
+.resultTypeSwitch1 {
+  margin-left: 2px;
+}
+
+.resultTypeSwitch2 {
+  margin-left: 118px;
+}
+
+.resultTypeSwitch3 {
+  margin-left: 234px;
+}
+
+.addressSearchForm :global(.ant-form-item) {
+  margin-bottom: 20px;
 }
 
 @keyframes spin {

@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect } from 'react'
-import { GoogleMap, useLoadScript, PolygonF,PolylineF,StandaloneSearchBox  } from '@react-google-maps/api'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { GoogleMap, useLoadScript, PolygonF, PolylineF, StandaloneSearchBox } from '@react-google-maps/api'
 import axios from 'axios';
-import { SearchControl } from '@/components/Search/search'
-import styles from '@/pages/polygontest/styles.module.css'
+import { AddressSearch } from '@/components/Search/search'
+import styles from './styles.module.css'
+import { Input } from 'antd/lib'
 
 const libraries = ["visualization", "drawing", "places"];  //要寫出來不然會報效能問題
 
@@ -181,12 +182,10 @@ const mapOptions = {
   ]
 };
 
-const containerStyle = {
-  width: '1519px',
-  height: '738px'
-};
-
-
+// const containerStyle = {
+//   width: '1519px',
+//   height: '738px'
+// };
 
 export default function App() {
   const { isLoaded } = useLoadScript({
@@ -195,7 +194,7 @@ export default function App() {
   })
   let mapInstance;
 
-  const [center,setCenter] = useState({
+  const [center, setCenter] = useState({
     lat: 23.614090,
     lng: 120.861217
   })
@@ -203,6 +202,29 @@ export default function App() {
   //   lat: 23.614090,
   //   lng: 120.861217
   // };
+
+  const [winWidth, setwinWidth] = useState();
+  const [winHeight, setwinHeight] = useState();
+  const handleNavigation = useCallback(
+    (e) => {
+      setwinWidth(window.innerWidth);
+      setwinHeight(window.innerHeight);
+    },
+    [winHeight]
+  );
+
+  useEffect(() => {
+    setwinWidth(window.innerWidth);
+    setwinHeight(window.innerHeight);
+
+    window.addEventListener("resize", handleNavigation);
+
+    return () => {
+
+      window.removeEventListener("resize", handleNavigation);
+    };
+
+  }, [handleNavigation]);
 
   const [polygons, setPolygons] = useState([]);
   const [polylines, setPolylines] = useState([]);
@@ -218,16 +240,15 @@ export default function App() {
       }
 
       if (zoom > 10) {
-        polygonFetchUrl = "http://localhost:3000/taiwan_village_boundaries.geojson"
-        setTimeout(() => {
-          setIsDrawed(false)
-        }, 1500);
+        // polygonFetchUrl = "http://localhost:3000/taiwan_village_boundaries.geojson"
+        // setTimeout(() => {
+        //   setIsDrawed(false)
+        // }, 1500);
       }
 
       const fetchData = async () => {
         try {
           const response = await axios.get(polygonFetchUrl); // 市區
-          // const response = await axios.get('http://localhost:3000/taiwan_village_boundaries.geojson'); // 村里
 
           const geoJsonData = response.data;
           // console.log(geoJsonData)
@@ -324,29 +345,33 @@ export default function App() {
     // mouseover：當滑鼠指針移入地圖時觸發。
   };
 
-  const handleSubmit = () => {
+  const [addressSearchString, setAddressSearchString] = useState("");
 
+  const handleSubmit = (value) => {
+    if (!value.addressfullname) {
+      setAddressSearchString("");
+    } else {
+      setAddressSearchString(value.addressfullname);
+    }
   }
 
-  const [searchBox, setSearchBox] = useState(null);
+  useEffect(() => {
+    if (isLoaded) {
+      const geocoder = new google.maps.Geocoder();
 
-  const handleOnLoad = (ref) => {
-    setSearchBox(ref);
-  };
-
-  const onPlacesChanged = () => {
-    const places = searchBox?.getPlaces();
-    if (places?.length > 0) {
-      const { lat, lng } = places[0].geometry.location;
-      console.log('Latitude:', lat());
-      console.log('Longitude:', lng());
-      setCenter({
-        lat: lat(),
-        lng: lng()
-      })
-      setZoom(11)
+      geocoder.geocode({ address: addressSearchString }, (results, status) => {
+        if (status === 'OK' && results && results.length > 0) {
+          const { lat, lng } = results[0].geometry.location;
+          setCenter({
+            lat: lat(),
+            lng: lng()
+          })
+          setZoom(15)
+        } else {
+        }
+      });
     }
-  };
+  }, [addressSearchString, isLoaded]);
 
   return isLoaded ? (
     <div className={styles.mapContainer}>
@@ -357,7 +382,10 @@ export default function App() {
         </div>
       ) : null}
       <GoogleMap
-        mapContainerStyle={containerStyle}
+        mapContainerStyle={{
+          width: winWidth,
+          height: winHeight
+        }}
         center={center}
         zoom={zoom}
         // onLoad={onLoad}
@@ -382,33 +410,9 @@ export default function App() {
           />
         ))}
 
-        <SearchControl
+        <AddressSearch
           onSubmit={handleSubmit}
         />
-        <StandaloneSearchBox
-          onLoad={handleOnLoad}
-          onPlacesChanged={onPlacesChanged}
-        >
-          <input
-            type="text"
-            placeholder="搜尋地址"
-            style={{
-              boxSizing: 'border-box',
-              border: '1px solid transparent',
-              width: '240px',
-              height: '32px',
-              padding: '0 12px',
-              borderRadius: '3px',
-              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
-              fontSize: '14px',
-              outline: 'none',
-              textOverflow: 'ellipses',
-              position: 'absolute',
-              left: '50%',
-              marginLeft: '-120px'
-            }}
-          />
-        </StandaloneSearchBox>
       </GoogleMap>
     </div>
   ) : (
