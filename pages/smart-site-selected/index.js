@@ -189,11 +189,12 @@ const mapOptions = {
 
 export default function App() {
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: "AIzaSyC_Djjbddb_8D1SdiuU40ysEpRhaJo9NHs",
+    googleMapsApiKey: "AIzaSyA4mKpPVdsY-bsyJDkBuOAVYL8uUGPD5Qs",
     libraries: libraries,
   })
   let mapInstance;
 
+  const [map, setMap] = useState(null);
   const [center, setCenter] = useState({
     lat: 23.614090,
     lng: 120.861217
@@ -330,6 +331,7 @@ export default function App() {
 
   const handleLoad = (map) => {
     mapInstance = map;
+    setMap(mapInstance)
     mapInstance.addListener('zoom_changed', handleMapZoomChanged);
     mapInstance.addListener('dragend', handleMapZoomChanged);
     // idle：當地圖進入空閒狀態時觸發。這表示地圖不再移動（包括平移和縮放）。
@@ -362,11 +364,13 @@ export default function App() {
       geocoder.geocode({ address: addressSearchString }, (results, status) => {
         if (status === 'OK' && results && results.length > 0) {
           const { lat, lng } = results[0].geometry.location;
-          setCenter({
-            lat: lat(),
-            lng: lng()
-          })
-          setZoom(15)
+          const viewport = results[0].geometry.viewport;
+          map.fitBounds(viewport);
+          // setCenter({
+          //   lat: lat(),
+          //   lng: lng()
+          // })
+          // setZoom(15)
         } else {
         }
       });
