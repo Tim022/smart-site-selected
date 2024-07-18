@@ -167,3 +167,19 @@
     color: #FFF;
   }
 }
+
+.watermark {
+  content: ' ';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: url("Frame 192.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  z-index: 666;
+  opacity: 0.2;
+  pointer-events: none;
+}

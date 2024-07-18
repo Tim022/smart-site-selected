@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { GoogleMap, useLoadScript, PolygonF, PolylineF, StandaloneSearchBox } from '@react-google-maps/api'
+import { GoogleMap, useLoadScript, PolygonF, PolylineF, OverlayView } from '@react-google-maps/api'
 import axios from 'axios';
 import { AddressSearch } from '@/components/Search/search'
 import styles from './styles.module.css'
@@ -189,11 +189,12 @@ const mapOptions = {
 
 export default function App() {
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: "AIzaSyC_Djjbddb_8D1SdiuU40ysEpRhaJo9NHs",
+    googleMapsApiKey: "AIzaSyA4mKpPVdsY-bsyJDkBuOAVYL8uUGPD5Qs",
     libraries: libraries,
   })
   let mapInstance;
 
+  const [map, setMap] = useState(null);
   const [center, setCenter] = useState({
     lat: 23.614090,
     lng: 120.861217
@@ -276,7 +277,7 @@ export default function App() {
           const fetchedPolylines = geoJsonDataL.features.map(feature => ({
             paths: feature.geometry.coordinates[0].map(latlon => ({ lat: latlon[1], lng: latlon[0] })),
             options: {
-              strokeColor: '#FF0000', // 線條顏色
+              strokeColor: '#E9FE03', // 線條顏色
               strokeOpacity: 1.0,
               strokeWeight: 2
             },
@@ -300,6 +301,19 @@ export default function App() {
     console.log('Map clicked at:', {
       lat: event.latLng.lat(),
       lng: event.latLng.lng(),
+    });
+
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ location: { lat: event.latLng.lat(), lng: event.latLng.lng() }, language: 'zh-TW' }, (results, status) => {
+      if (status === 'OK') {
+        if (results[0]) {
+          console.log(results[0].formatted_address);
+        } else {
+          console.log('No results found');
+        }
+      } else {
+        console.log('Geocoder failed due to: ' + status);
+      }
     });
   };
 
@@ -330,6 +344,7 @@ export default function App() {
 
   const handleLoad = (map) => {
     mapInstance = map;
+    setMap(mapInstance)
     mapInstance.addListener('zoom_changed', handleMapZoomChanged);
     mapInstance.addListener('dragend', handleMapZoomChanged);
     // idle：當地圖進入空閒狀態時觸發。這表示地圖不再移動（包括平移和縮放）。
@@ -362,11 +377,13 @@ export default function App() {
       geocoder.geocode({ address: addressSearchString }, (results, status) => {
         if (status === 'OK' && results && results.length > 0) {
           const { lat, lng } = results[0].geometry.location;
-          setCenter({
-            lat: lat(),
-            lng: lng()
-          })
-          setZoom(15)
+          const viewport = results[0].geometry.viewport;
+          map.fitBounds(viewport);
+          // setCenter({
+          //   lat: lat(),
+          //   lng: lng()
+          // })
+          // setZoom(15)
         } else {
         }
       });
@@ -375,6 +392,7 @@ export default function App() {
 
   return isLoaded ? (
     <div className={styles.mapContainer}>
+      <div className={styles.watermark}></div>
       {!isDrawed ? (
         <div className={styles.mapLoadingMask}>
           <div className={styles.mapLoadingSpinner}></div>
@@ -388,7 +406,6 @@ export default function App() {
         }}
         center={center}
         zoom={zoom}
-        // onLoad={onLoad}
         options={mapOptions}
         onLoad={handleLoad}
         onClick={handleMapClick}
