@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { GoogleMap, useLoadScript, PolygonF, PolylineF, OverlayView } from '@react-google-maps/api'
+import Image from 'next/image'
+import { GoogleMap, useLoadScript, PolygonF, PolylineF, MarkerF, OverlayView } from '@react-google-maps/api'
 import axios from 'axios';
 import { AddressSearch } from '@/components/Search/search'
+import { TitanIcon } from '@/components/Icons/icons'
 import styles from './styles.module.css'
 import { Input } from 'antd/lib'
 
@@ -232,18 +234,21 @@ export default function App() {
   const [isDrawed, setIsDrawed] = useState(true);
   const [zoom, setZoom] = useState(8);
   useEffect(() => {
-    var polygonFetchUrl = "http://localhost:3000/taiwan_district_boundaries.geojson"
+    // let polygonFetchUrl = "http://localhost:3000/taiwan_district_boundaries.geojson"
+    let polygonFetchUrl = "http://localhost:3000/TOWN_MOI_1120825_1.json"
     if (zoom == 8 || zoom > 10) {
 
       if (zoom == 8) {
-        polygonFetchUrl = "http://localhost:3000/taiwan_district_boundaries.geojson"
-        // setIsDrawed(false)
+        // polygonFetchUrl = "http://localhost:3000/taiwan_district_boundaries.geojson"
+        polygonFetchUrl = "http://localhost:3000/TOWN_MOI_1120825_1.json"
+        setIsDrawed(false)
       }
 
       if (zoom > 10) {
         // polygonFetchUrl = "http://localhost:3000/taiwan_village_boundaries.geojson"
+        polygonFetchUrl = "http://localhost:3000/VILLAGE_NLSC_1130419_1.json"
         // setTimeout(() => {
-        //   setIsDrawed(false)
+        setIsDrawed(false)
         // }, 1500);
       }
 
@@ -255,27 +260,41 @@ export default function App() {
           // console.log(geoJsonData)
 
           // Extract polygons from GeoJSON data
-          const fetchedPolygons = geoJsonData.features.map(feature => ({
-            paths: feature.geometry.coordinates[0].map(coord => coord.map(latlon => ({ lat: latlon[1], lng: latlon[0] }))),
-            options: {
-              strokeColor: '#E5FFF580',
-              fillColor: '#52CCCCB2',
-              // strokeOpacity: 0.8,
-              strokeWeight: 1,
-              // fillOpacity: 0.35,
-            },
-          }));
+          const fetchedPolygons = geoJsonData.features.map((feature, index) => {
+            let paths;
+            if (feature.geometry?.type == "Polygon") {
+              paths = feature.geometry?.coordinates.map((value, index) => {
+                return value.map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+              })
+            } else if (feature.geometry?.type == "MultiPolygon") {
+              paths = feature.geometry?.coordinates.map((value, index) => {
+                return value[0].map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+              })
+            }
+            let result = {
+              paths: paths,
+              options: {
+                strokeColor: '#E5FFF580',
+                fillColor: '#52CCCCB2',
+                // strokeOpacity: 0.8,
+                strokeWeight: 1,
+                // fillOpacity: 0.35,
+              },
+            }
+            return result
+          });
 
           // console.log(fetchedPolygons)
           setPolygons(fetchedPolygons);
 
-          const responseL = await axios.get('http://localhost:3000/taiwan_road.geojson'); // Replace with your GeoJSON URL
+          // const responseL = await axios.get('http://localhost:3000/taiwan_road.geojson'); // Replace with your GeoJSON URL
+          const responseL = await axios.get('http://localhost:3000/simpify_road.json');
           const geoJsonDataL = responseL.data;
           // console.log(geoJsonDataL)
 
           // Extract polylines from GeoJSON data
           const fetchedPolylines = geoJsonDataL.features.map(feature => ({
-            paths: feature.geometry.coordinates[0].map(latlon => ({ lat: latlon[1], lng: latlon[0] })),
+            paths: feature.geometry.coordinates.map(latlon => ({ lat: latlon[1], lng: latlon[0] })),
             options: {
               strokeColor: '#E9FE03', // 線條顏色
               strokeOpacity: 1.0,
@@ -303,7 +322,7 @@ export default function App() {
       lng: event.latLng.lng(),
     });
 
-    const geocoder = new window.google.maps.Geocoder();
+    const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ location: { lat: event.latLng.lat(), lng: event.latLng.lng() }, language: 'zh-TW' }, (results, status) => {
       if (status === 'OK') {
         if (results[0]) {
@@ -370,6 +389,7 @@ export default function App() {
     }
   }
 
+  const [places, setPlaces] = useState([]);
   useEffect(() => {
     if (isLoaded) {
       const geocoder = new google.maps.Geocoder();
@@ -378,6 +398,8 @@ export default function App() {
         if (status === 'OK' && results && results.length > 0) {
           const { lat, lng } = results[0].geometry.location;
           const viewport = results[0].geometry.viewport;
+          console.log(viewport)
+          console.log(map)
           map.fitBounds(viewport);
           // setCenter({
           //   lat: lat(),
@@ -387,55 +409,96 @@ export default function App() {
         } else {
         }
       });
+      // if (map) {
+      //   const service = new google.maps.places.PlacesService(map);
+
+      //   service.nearbySearch({
+      //     location: map.getCenter(),
+      //     radius: 5000,
+      //     type: 'restaurant'
+      //   }, (results, status, pagination) => {
+      //     if (status === google.maps.places.PlacesServiceStatus.OK) {
+      //       setPlaces(results);
+      //     }
+      //   });
+      // }
     }
   }, [addressSearchString, isLoaded]);
 
-  return isLoaded ? (
-    <div className={styles.mapContainer}>
-      <div className={styles.watermark}></div>
-      {!isDrawed ? (
-        <div className={styles.mapLoadingMask}>
-          <div className={styles.mapLoadingSpinner}></div>
-          <p>Loading...</p>
-        </div>
-      ) : null}
-      <GoogleMap
-        mapContainerStyle={{
-          width: winWidth,
-          height: winHeight
-        }}
-        center={center}
-        zoom={zoom}
-        options={mapOptions}
-        onLoad={handleLoad}
-        onClick={handleMapClick}
-      // onUnmount={onUnmount}
-      >
-        {polygons.map((polygon, index) => (
-          <PolygonF
-            onClick={handleMapClick}
-            key={index}
-            paths={polygon.paths}
-            options={polygon.options}
-          />
-        ))}
-        {polylines.map((polyline, index) => (
-          <PolylineF
-            key={index}
-            path={polyline.paths}
-            options={polyline.options}
-          />
-        ))}
+  const generateRandomPOI = () => {
+    const poiLocations = [];
+    const numPOI = 70;
+    const range = 1.0; // 1 度的範圍
 
-        <AddressSearch
-          onSubmit={handleSubmit}
-        />
-      </GoogleMap>
+    for (let i = 0; i < numPOI; i++) {
+      const lat = center.lat + (Math.random() - 0.5) * range;
+      const lng = center.lng + (Math.random() - 0.5) * range;
+      poiLocations.push({ lat, lng });
+    }
+
+    return poiLocations;
+  };
+
+  const poiLocations = generateRandomPOI();
+
+  return (<>
+    <div className={styles.watermark}></div>
+    <div className={styles.header}>
+      <TitanIcon innerStyle={{ marginLeft: '32px' }} color='#FFFFFF' />
     </div>
-  ) : (
-    <div className={styles.mapLoadingContainer}>
-      <div className={styles.mapLoadingSpinner}></div>
-      <p>Loading...</p>
-    </div>
-  )
+    <div className={styles.headertopline}></div>
+
+    {isLoaded ? (
+      <div className={styles.mapContainer}>
+
+        {!isDrawed ? (
+          <div className={styles.mapLoadingMask}>
+            <div className={styles.mapLoadingSpinner}></div>
+            <p>Loading...</p>
+          </div>
+        ) : null}
+        <GoogleMap
+          mapContainerStyle={{
+            width: winWidth,
+            height: winHeight
+          }}
+          center={center}
+          zoom={zoom}
+          options={mapOptions}
+          onLoad={handleLoad}
+          onClick={handleMapClick}
+        // onUnmount={onUnmount}
+        >
+          {polygons.map((polygon, index) => (
+            <PolygonF
+              onClick={handleMapClick}
+              key={index}
+              paths={polygon.paths}
+              options={polygon.options}
+            />
+          ))}
+          {polylines.map((polyline, index) => (
+            <PolylineF
+              key={index}
+              path={polyline.paths}
+              options={polyline.options}
+            />
+          ))}
+          {/* {poiLocations.map((poi, index) => (
+          <MarkerF
+            key={index}
+            position={poi}
+          />
+        ))} */}
+          <AddressSearch
+            onSubmit={handleSubmit}
+          />
+        </GoogleMap>
+      </div>) : (
+      <div className={styles.mapLoadingContainer}>
+        <div className={styles.mapLoadingSpinner}></div>
+        <p>Loading...</p>
+      </div>
+    )}
+  </>)
 }

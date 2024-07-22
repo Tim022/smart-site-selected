@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
 import styles from '@/pages/smart-site-selected/styles.module.css'
 import { SearchIcon, CloseIcon, InfoCircleIcon, ChevronLeftIcon } from '@/components/Icons/icons'
 import { Button, Select, Form, Input, InputNumber, Tabs } from 'antd/lib'

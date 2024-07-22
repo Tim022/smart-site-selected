@@ -1,3 +1,22 @@
+.header {
+  background: linear-gradient(90deg, #454A52 21.5%, #50908B 100%);
+  position: fixed;
+  top: 0px;
+  z-index: 664;
+  width: 362px;
+  height: 74px;
+  display: flex;
+  align-items: center;
+  clip-path: polygon(0% 0%, 0% 100%, 82.556% 100%, 82.556% 100%, 83.1% 99.869%, 83.633% 99.482%, 84.153% 98.847%, 84.655% 97.974%, 85.137% 96.871%, 85.595% 95.546%, 86.025% 94.009%, 86.425% 92.267%, 86.791% 90.331%, 87.12% 88.208%, 94.764% 33.414%, 94.764% 33.414%, 95.092% 31.291%, 95.458% 29.354%, 95.858% 27.613%, 96.289% 26.076%, 96.747% 24.751%, 97.228% 23.648%, 97.731% 22.774%, 98.25% 22.14%, 98.784% 21.753%, 99.327% 21.622%, 397.79% 21.622%, 397.79% 0%, 0% 0%);
+}
+
+.headertopline {
+  background: linear-gradient(90deg, #50908B 21.5%, #00FFD5 71%, #396B6A 100%);
+  z-index: 664;
+  height: 16px;
+  margin-left: 362px;
+}
+
 .searchArea {
   background-color: #454B52;
   transition: All 0.3s;
@@ -175,11 +194,16 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: url("Frame 192.png");
+  background: url("watermark.png");
   background-position: center;
-  background-repeat: no-repeat;
+  /* background-repeat: repeat; */
   background-attachment: fixed;
   z-index: 666;
-  opacity: 0.2;
   pointer-events: none;
+}
+
+.counter {
+  position: absolute;
+  bottom: 61px;
+  right: 112px;
 }
