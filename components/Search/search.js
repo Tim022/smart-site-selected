@@ -200,7 +200,7 @@ export const AddressSearch = ({ onSubmit }) => {
         />
         :
         <button
-          className={styles.searchBeginButton}
+          className={`${styles.searchBeginButton} ${styles.alignCenterV} ${styles.alignCenterH}`}
           onClick={handlesearchBoxOpen}
         >
           <SearchIcon size='16' color='#FFF' />

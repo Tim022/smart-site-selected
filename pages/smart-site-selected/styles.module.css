@@ -1,3 +1,179 @@
+@font-face {
+  font-family: 'Noto Sans TC';
+  font-style: normal;
+  font-weight: 100;
+  src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff) format('woff'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.otf) format('opentype');
+}
+
+@font-face {
+  font-family: 'Noto Sans TC';
+  font-style: normal;
+  font-weight: 300;
+  src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Light.woff2) format('woff2'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Light.woff) format('woff'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Light.otf) format('opentype');
+}
+
+@font-face {
+  font-family: 'Noto Sans TC';
+  font-style: normal;
+  font-weight: 400;
+  src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff) format('woff'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.otf) format('opentype');
+}
+
+@font-face {
+  font-family: 'Noto Sans TC';
+  font-style: normal;
+  font-weight: 500;
+  src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Medium.woff2) format('woff2'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Medium.woff) format('woff'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Medium.otf) format('opentype');
+}
+
+@font-face {
+  font-family: 'Noto Sans TC';
+  font-style: normal;
+  font-weight: 700;
+  src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff) format('woff'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.otf) format('opentype');
+}
+
+@font-face {
+  font-family: 'Noto Sans TC';
+  font-style: normal;
+  font-weight: 900;
+  src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff) format('woff'),
+    url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.otf) format('opentype');
+}
+
+.alignCenterV {
+  display: flex;
+  align-items: center;
+}
+
+.alignCenterH {
+  display: flex;
+  justify-content: center;
+}
+
+.bottomTools {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  margin-bottom: 32px;
+  pointer-events: none;
+}
+
+.bottomToolsRow {
+  width: 100%;
+}
+
+.gradiantLevelList {
+  background-color: #454B52;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  pointer-events: all;
+}
+
+.gradiantLevelTitle {
+  width: 140px;
+}
+
+.gradiantLevelSpan {
+  color: #FFFFFF;
+  font-family: 'Noto Sans TC';
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.gradiantLevel {
+  width: 146px;
+  height: 12px;
+  margin: 0px 12px;
+  border-radius: 100px;
+}
+
+.gradiantLevelColor1 {
+  background: linear-gradient(90deg, rgba(25, 61, 97, 20%) 0%, rgba(30, 90, 120, 30%) 14%, rgba(32, 104, 128, 40%) 30%, rgba(38, 134, 153, 50%) 41%, rgba(54, 168, 178, 60%) 54%, rgba(82, 204, 204, 70%) 68%, rgba(138, 229, 214, 80%) 79%, rgba(228, 255, 191, 90%) 94%);
+}
+
+.gradiantLevelColor2 {
+  background: linear-gradient(90deg, #28346F 0%, #66B1C8 52%, #E9FE03 100%);
+}
+
+.scale {
+  width: fit-content;
+  height: 22px;
+  background-color: #454B52;
+  border-radius: 4px;
+  padding-left: 12px;
+  padding-right: 10px;
+  pointer-events: all;
+}
+
+.scaleValue {
+  display: inline-block;
+  color: #FFFFFF;
+  font-family: 'Noto Sans TC';
+  font-weight: 400;
+  font-size: 14px;
+  margin-right: 22px;
+}
+
+.scaleBar {
+  border: 1px solid #FFFFFF;
+  width: 100px;
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.zoomContainer {
+  width: 104px;
+  height: 36px;
+  background-color: #454B52;
+  border-radius: 4px;
+  margin: 0px 24px;
+  padding: 9.5px 0px;
+  pointer-events: all;
+}
+
+.zoomButton:global(.ant-btn-default) {
+  background: #ffffff00;
+  border-color: #d9d9d900;
+  padding: 0px 5px;
+}
+
+.zoomButton:global(.ant-btn-default):hover {
+  background: #5c5f627d !important;
+  border-color: #d9d9d900 !important;
+  color: #FFF !important;
+}
+
+.headercontainer {
+  content: ' ';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-position: center;
+  /* background-repeat: repeat; */
+  background-attachment: fixed;
+  z-index: 665;
+  pointer-events: none;
+}
+
 .header {
   background: linear-gradient(90deg, #454A52 21.5%, #50908B 100%);
   position: fixed;
@@ -5,8 +181,6 @@
   z-index: 664;
   width: 362px;
   height: 74px;
-  display: flex;
-  align-items: center;
   clip-path: polygon(0% 0%, 0% 100%, 82.556% 100%, 82.556% 100%, 83.1% 99.869%, 83.633% 99.482%, 84.153% 98.847%, 84.655% 97.974%, 85.137% 96.871%, 85.595% 95.546%, 86.025% 94.009%, 86.425% 92.267%, 86.791% 90.331%, 87.12% 88.208%, 94.764% 33.414%, 94.764% 33.414%, 95.092% 31.291%, 95.458% 29.354%, 95.858% 27.613%, 96.289% 26.076%, 96.747% 24.751%, 97.228% 23.648%, 97.731% 22.774%, 98.25% 22.14%, 98.784% 21.753%, 99.327% 21.622%, 397.79% 21.622%, 397.79% 0%, 0% 0%);
 }
 
@@ -15,6 +189,36 @@
   z-index: 664;
   height: 16px;
   margin-left: 362px;
+}
+
+.headerIconRow {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.headerIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
+  background-color: #565C66;
+  margin-top: 16px;
+  margin-right: 32px;
+  color: #FFFFFF;
+  font-size: 20px;
+  font-weight: 400;
+  pointer-events: all;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+}
+
+.headerIcon:hover {
+  box-shadow: 0px 0px 4px 0px #26fff8;
+  width: 44px;
+  height: 44px;
+  margin-top: 14px;
+  margin-right: 30px;
 }
 
 .searchArea {
@@ -48,9 +252,6 @@
 }
 
 .searchBeginButton {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background-color: #454B52;
   box-shadow: 0px 0px 4px 0px #FFFFFF40 inset;
   padding: 10px 16px;
@@ -86,9 +287,6 @@
 .mapLoadingContainer {
   width: 1519px;
   height: 738px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .mapLoadingSpinner {
@@ -107,6 +305,26 @@
   height: 100%;
 }
 
+/* 隱藏右下角的提示框 */
+.mapContainer :global(.gm-style-cc) {
+  display: none;
+}
+
+/* 隱藏經緯度網格線 */
+.mapContainer img[role=presentation] {
+  width: 257px !important;
+  height: 257px !important;
+}
+
+/* 隱藏左下角的google icon */
+.mapContainer a[href^="http://maps.google.com/maps"] {
+  display: none !important
+}
+
+.mapContainer a[href^="https://maps.google.com/maps"] {
+  display: none !important
+}
+
 .mapLoadingMask {
   z-index: 9999999;
   position: absolute;
@@ -115,10 +333,6 @@
   width: 100%;
   height: 100%;
   background-color: rgba(255, 255, 255, 0.3);
-  /* 半透明白色背景 */
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .searchMethodSelectedBackground {
@@ -206,4 +420,5 @@
   position: absolute;
   bottom: 61px;
   right: 112px;
+  z-index: 666666666666;
 }

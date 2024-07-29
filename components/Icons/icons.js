@@ -1,5 +1,5 @@
 import React from 'react'
-import styles from './icons.module.css'
+import styles from './styles.module.css'
 
 export const TitanIcon = ({
   size = [246.67, 24], // or any default size of your choice
@@ -136,6 +136,66 @@ export const ChevronLeftIcon = ({
         <path d="M14.7325 3.44369V1.71824C14.7325 1.56869 14.5606 1.4861 14.4445 1.57761L4.38201 9.43699C4.29651 9.50348 4.22733 9.58861 4.17975 9.6859C4.13216 9.78319 4.10742 9.89007 4.10742 9.99837C4.10742 10.1067 4.13216 10.2136 4.17975 10.3108C4.22733 10.4081 4.29651 10.4933 4.38201 10.5598L14.4445 18.4191C14.5628 18.5107 14.7325 18.4281 14.7325 18.2785V16.5531C14.7325 16.4437 14.6811 16.3388 14.5963 16.2718L6.56058 9.99949L14.5963 3.72494C14.6811 3.65797 14.7325 3.55306 14.7325 3.44369Z" />
       </svg>
 
+    </span>
+  )
+}
+
+export const PolygonIcon = ({
+  size = 6, // or any default size of your choice
+  color = "black", // or any color of your choice
+  innerStyle
+}) => {
+  return (
+    <span role='img' className={styles.iconDisplay} aria-label='polygon' style={innerStyle}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 6 6"
+        width={size} // added size here
+        height={size} // added size here
+        fill={color} // added color here
+      >
+        <path d="M6 3L0 6V0L6 3Z" fill={color} />
+      </svg>
+    </span>
+  )
+}
+
+export const PlusIcon = ({
+  size = 24, // or any default size of your choice
+  color = "black", // or any color of your choice
+  innerStyle
+}) => {
+  return (
+    <span role='img' className={styles.iconDisplay} aria-label='plus' style={innerStyle}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width={size} // added size here
+        height={size} // added size here
+        fill={color} // added color here
+      >
+        <path d="M13.3024 2.3584H11.6952C11.5524 2.3584 11.481 2.42983 11.481 2.57268V10.9834H3.49944C3.35658 10.9834 3.28516 11.0548 3.28516 11.1977V12.8048C3.28516 12.9477 3.35658 13.0191 3.49944 13.0191H11.481V21.4298C11.481 21.5727 11.5524 21.6441 11.6952 21.6441H13.3024C13.4452 21.6441 13.5167 21.5727 13.5167 21.4298V13.0191H21.4994C21.6423 13.0191 21.7137 12.9477 21.7137 12.8048V11.1977C21.7137 11.0548 21.6423 10.9834 21.4994 10.9834H13.5167V2.57268C13.5167 2.42983 13.4452 2.3584 13.3024 2.3584Z" fill={color} />
+      </svg>
+    </span>
+  )
+}
+
+export const MinusIcon = ({
+  size = 24, // or any default size of your choice
+  color = "black", // or any color of your choice
+  innerStyle
+}) => {
+  return (
+    <span role='img' className={styles.iconDisplay} aria-label='minus' style={innerStyle}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width={size} // added size here
+        height={size} // added size here
+        fill={color} // added color here
+      >
+        <path d="M22.1426 10.9834H2.85686C2.73901 10.9834 2.64258 11.0798 2.64258 11.1977V12.8048C2.64258 12.9227 2.73901 13.0191 2.85686 13.0191H22.1426C22.2604 13.0191 22.3569 12.9227 22.3569 12.8048V11.1977C22.3569 11.0798 22.2604 10.9834 22.1426 10.9834Z" fill={color} />
+      </svg>
     </span>
   )
 }

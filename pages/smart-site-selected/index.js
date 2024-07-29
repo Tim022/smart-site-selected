@@ -1,32 +1,128 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { GoogleMap, useLoadScript, PolygonF, PolylineF, MarkerF, OverlayView } from '@react-google-maps/api'
+import { GoogleMap, useLoadScript, PolygonF, PolylineF, RectangleF, MarkerF } from '@react-google-maps/api'
 import axios from 'axios';
 import { AddressSearch } from '@/components/Search/search'
-import { TitanIcon } from '@/components/Icons/icons'
+import { PolygonLabel } from '@/components/OverlayViews/overlayviews'
+import { TitanIcon, PolygonIcon, PlusIcon, MinusIcon } from '@/components/Icons/icons'
 import styles from './styles.module.css'
-import { Input } from 'antd/lib'
+import { Button, Row, Col } from 'antd/lib'
 
 const libraries = ["visualization", "drawing", "places"];  //要寫出來不然會報效能問題
+
+const minScaleWidth = 50;
+const maxScaleWidth = 80;
+const scaleValues = [{
+  val: 2,
+  dspVal: '2 公尺'
+}, {
+  val: 5,
+  dspVal: '5 公尺'
+},
+{
+  val: 10,
+  dspVal: '10 公尺'
+},
+{
+  val: 20,
+  dspVal: '20 公尺'
+},
+{
+  val: 50,
+  dspVal: '50 公尺'
+},
+{
+  val: 100,
+  dspVal: '100 公尺'
+},
+{
+  val: 200,
+  dspVal: '200 公尺'
+},
+{
+  val: 500,
+  dspVal: '500 公尺'
+},
+{
+  val: 1000,
+  dspVal: '1 公里'
+},
+{
+  val: 2000,
+  dspVal: '2 公里'
+},
+{
+  val: 5000,
+  dspVal: '5 公里'
+},
+{
+  val: 10000,
+  dspVal: '10 公里'
+},
+{
+  val: 20000,
+  dspVal: '20 公里'
+},
+{
+  val: 50000,
+  dspVal: '50 公里'
+},
+{
+  val: 100000,
+  dspVal: '100 公里'
+},
+{
+  val: 200000,
+  dspVal: '200 公里'
+},
+{
+  val: 500000,
+  dspVal: '500 公里'
+},
+{
+  val: 1000000,
+  dspVal: '1000 公里'
+},
+{
+  val: 2000000,
+  dspVal: '2000 公里'
+},
+{
+  val: 5000000,
+  dspVal: '5000 公里'
+}
+];
+
+const setScaleValues = (scale, values) => {
+  let scaleWidth = values.val / scale;
+  // console.log(scaleWidth)
+  // console.log(values.dspVal)
+  // Set scale HTML elements width and display value
+  document.getElementById('scale-bar').style.width = scaleWidth + 'px';
+  document.getElementById('scale-value').innerHTML = values.dspVal;
+}
 
 const mapOptions = {
   disableDefaultUI: true,
   // restriction: {
   //   latLngBounds: {
-  //     north: 25.5,
-  //     south: 21.5,
-  //     west: 118,
+  //     north: 26.8,
+  //     south: 20.5,
+  //     west: 119,
   //     east: 122,
   //   },
   //   strictBounds: false,
   // },
+  // minZoom: 8,
+  // scaleControl: true,
+  // zoomControl: true,
   styles: [
     {
       "elementType": "geometry",
       "stylers": [
         {
-          "color": "#242f3e"
+          "color": "#2B2F33"
         }
       ]
     },
@@ -34,7 +130,7 @@ const mapOptions = {
       "elementType": "labels.text.stroke",
       "stylers": [
         {
-          "color": "#242f3e"
+          "color": "#2B2F33"
         }
       ]
     },
@@ -52,6 +148,15 @@ const mapOptions = {
       "stylers": [
         {
           "color": "#d59563"
+        }
+      ]
+    },
+    { //隱藏預設的行政區名稱
+      "featureType": "administrative",
+      "elementType": "labels",
+      "stylers": [
+        {
+          "visibility": "off"
         }
       ]
     },
@@ -159,7 +264,7 @@ const mapOptions = {
       "elementType": "geometry",
       "stylers": [
         {
-          "color": "#17263c"
+          "color": "#2B2F33"
         }
       ]
     },
@@ -177,7 +282,7 @@ const mapOptions = {
       "elementType": "labels.text.stroke",
       "stylers": [
         {
-          "color": "#17263c"
+          "color": "#2B2F33"
         }
       ]
     }
@@ -190,6 +295,24 @@ const mapOptions = {
 // };
 
 export default function App() {
+  // const [seconds, setSeconds] = useState(0);
+  // const [isActive, setIsActive] = useState(true);
+  // useEffect(() => {
+  //   let interval = null;
+
+  //   if (isActive) {
+  //     interval = setInterval(() => {
+  //       setSeconds(prevSeconds => prevSeconds + 1);
+  //     }, 1000); // 每秒更新一次秒数
+
+  //   } else if (!isActive && seconds !== 0) {
+  //     clearInterval(interval);
+  //   }
+
+  //   return () => clearInterval(interval);
+  // }, [isActive, seconds]);
+
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: "AIzaSyA4mKpPVdsY-bsyJDkBuOAVYL8uUGPD5Qs",
     libraries: libraries,
@@ -216,6 +339,7 @@ export default function App() {
     [winHeight]
   );
 
+  //取得當前螢幕長寬
   useEffect(() => {
     setwinWidth(window.innerWidth);
     setwinHeight(window.innerHeight);
@@ -233,22 +357,123 @@ export default function App() {
   const [polylines, setPolylines] = useState([]);
   const [isDrawed, setIsDrawed] = useState(true);
   const [zoom, setZoom] = useState(8);
-  useEffect(() => {
+  //初始放大級數、國道：8 (比例尺20公里)
+  //鄉鎮市區、省道、快速道路：10(比例尺10公里)
+  //村里、所有POI：14(比例尺500公尺)
+
+  const zoomOut = () => {
+    setZoom(zoom - 1);
+  }
+  const zoomIn = () => {
+    setZoom(zoom + 1);
+  }
+
+  const [hoveredPolygon, setHoveredPolygon] = useState(null);
+  const handleMouseOver = useCallback((index) => {
+    setHoveredPolygon(index);
+  }, []);
+
+  const handleMouseOut = useCallback(() => {
+    setHoveredPolygon(null);
+  }, []);
+
+  const getPolygonOptions = (index) => {
+    let fillColor;
+    let strokeColor;
+    if (!hoveredPolygon) {
+      fillColor = '#52CCCCB2';
+      strokeColor = '#E5FFF580';
+    } else {
+      fillColor = hoveredPolygon === index ? '#E4FFBFCC' : '#52CCCC4D';
+      strokeColor = hoveredPolygon === index ? '#FFFFFF' : '#E5FFF580';
+    }
+    let option = {
+      fillColor: fillColor,
+      // fillOpacity: 0.6,
+      strokeColor: strokeColor,
+      // strokeOpacity: 1,
+      strokeWeight: 1
+    }
+    return option;
+  };
+
+  const handleMapClick = (event, type) => {
+    console.log('Map clicked at:', {
+      lat: event.latLng.lat(),
+      lng: event.latLng.lng(),
+    });
+
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: { lat: event.latLng.lat(), lng: event.latLng.lng() }, language: 'zh-TW' }, (results, status) => {
+      if (status === 'OK') {
+        if (results[0]) {
+          console.log(results[0])
+          let city, town;
+          if (type == "鄉鎮地區") {
+            for (let i = 0; i < results[0].address_components.length; i++) {
+              const component = results[0].address_components[i];
+              if (component.types.includes('administrative_area_level_1')) {
+                city = component.long_name;
+              }
+              if (component.types.includes('administrative_area_level_2')) {
+                town = component.long_name;
+              }
+            }
+          }
+
+          //administrative_area_level_1 縣市
+          //administrative_area_level_2 鄉鎮地區
+          //administrative_area_level_3 村里
+
+          const address = `${city}${town}`;
+          console.log(address);
+          setAddressSearchString(address);
+        } else {
+          console.log('No results found');
+        }
+      } else {
+        console.log('Geocoder failed due to: ' + status);
+      }
+    });
+  };
+
+  const getPolygonCenter = (paths) => {
+    let latSum = 0;
+    let lngSum = 0;
+    const n = paths[0].length;
+
+    paths[0].forEach((point) => {
+      latSum += point.lat;
+      lngSum += point.lng;
+    });
+
+    return {
+      lat: latSum / n,
+      lng: lngSum / n,
+    };
+
+  };
+
+  const draw = () => {
+    const mapZoomLevel = mapInstance?.getZoom();
+    setZoom(mapZoomLevel);
     // let polygonFetchUrl = "http://localhost:3000/taiwan_district_boundaries.geojson"
     let polygonFetchUrl = "http://localhost:3000/TOWN_MOI_1120825_1.json"
-    if (zoom == 8 || zoom > 10) {
+    if (mapZoomLevel == 8 || mapZoomLevel > 10) {
 
-      if (zoom == 8) {
+      if (mapZoomLevel == 8) {
         // polygonFetchUrl = "http://localhost:3000/taiwan_district_boundaries.geojson"
         polygonFetchUrl = "http://localhost:3000/TOWN_MOI_1120825_1.json"
         setIsDrawed(false)
       }
 
-      if (zoom > 10) {
+      if (mapZoomLevel > 10) {
         // polygonFetchUrl = "http://localhost:3000/taiwan_village_boundaries.geojson"
-        polygonFetchUrl = "http://localhost:3000/VILLAGE_NLSC_1130419_1.json"
+        // polygonFetchUrl = "http://localhost:3000/VILLAGE_NLSC_1130419_1.json"
         // setTimeout(() => {
-        setIsDrawed(false)
+        // setSeconds(0)
+        // setIsActive(true)
+        // setIsDrawed(false)
         // }, 1500);
       }
 
@@ -262,17 +487,20 @@ export default function App() {
           // Extract polygons from GeoJSON data
           const fetchedPolygons = geoJsonData.features.map((feature, index) => {
             let paths;
+            // let label = feature.properties.COUNTYNAME;TOWNNAME
+            let label = feature.properties.TOWNNAME;
             if (feature.geometry?.type == "Polygon") {
               paths = feature.geometry?.coordinates.map((value, index) => {
                 return value.map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
-              })
+              });
             } else if (feature.geometry?.type == "MultiPolygon") {
               paths = feature.geometry?.coordinates.map((value, index) => {
                 return value[0].map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
-              })
+              });
             }
             let result = {
               paths: paths,
+              label: label,
               options: {
                 strokeColor: '#E5FFF580',
                 fillColor: '#52CCCCB2',
@@ -281,6 +509,7 @@ export default function App() {
                 // fillOpacity: 0.35,
               },
             }
+
             return result
           });
 
@@ -306,6 +535,7 @@ export default function App() {
           setPolylines(fetchedPolylines);
           setTimeout(() => {
             setIsDrawed(true)
+            // setIsActive(false)
           }, 1000);
         } catch (error) {
           console.error('Error fetching GeoJSON:', error);
@@ -313,34 +543,14 @@ export default function App() {
       };
       fetchData();
     }
-
-  }, [zoom]);
-
-  const handleMapClick = (event) => {
-    console.log('Map clicked at:', {
-      lat: event.latLng.lat(),
-      lng: event.latLng.lng(),
-    });
-
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: { lat: event.latLng.lat(), lng: event.latLng.lng() }, language: 'zh-TW' }, (results, status) => {
-      if (status === 'OK') {
-        if (results[0]) {
-          console.log(results[0].formatted_address);
-        } else {
-          console.log('No results found');
-        }
-      } else {
-        console.log('Geocoder failed due to: ' + status);
-      }
-    });
-  };
+  }
 
   const handleMapZoomChanged = () => {
     console.log(google.maps)
+    // console.log(map)
     //取得放大等級
     const mapZoomLevel = mapInstance?.getZoom();
-    setZoom(mapZoomLevel);
+    // setZoom(mapZoomLevel);
     console.log('Map zoom level changed:', mapZoomLevel);
 
     //取得中心經緯度與邊緣距離
@@ -360,12 +570,53 @@ export default function App() {
     console.log('Distance in kilometers (latitude):', distanceLat);
     console.log('Distance in kilometers (longitude):', distanceLng);
   };
+  const makeScale = () => {
+    let zoom = mapInstance?.getZoom();
 
+    // Calculate the width of 1 map pixel in meters
+    // Based on latitude and zoom level
+    // See https://groups.google.com/d/msg/google-maps-js-api-v3/hDRO4oHVSeM/osOYQYXg2oUJ
+    let scale = 156543.03392 * Math.cos(mapInstance?.getCenter().lat() * Math.PI / 180) / Math.pow(2, zoom);
+
+    let minScale = Math.floor(scale * minScaleWidth);
+    let maxScale = Math.ceil(scale * maxScaleWidth);
+    // console.log(scaleValues)
+    // Loop through scale values
+    for (let i = 0; i < scaleValues.length; i++) {
+
+      if (i !== scaleValues.length - 1) {
+
+        // Select appropriate scale value
+        if (((minScale <= scaleValues[i].val) && (scaleValues[i].val <= maxScale)) || ((minScale > scaleValues[i].val) && (maxScale) < scaleValues[i + 1].val)) {
+
+          // Found appropriate scale value
+          // Set scale width and value
+          setScaleValues(scale, scaleValues[i]);
+
+          // Break for loop
+          break;
+        }
+
+      } else {
+
+        // Reached the end of the values array
+        // Found no match so far
+        // Use array last value anyway
+
+        // Set scale width and value
+
+        setScaleValues(scale, scaleValues[i]);
+      }
+    }
+  }
   const handleLoad = (map) => {
     mapInstance = map;
     setMap(mapInstance)
-    mapInstance.addListener('zoom_changed', handleMapZoomChanged);
-    mapInstance.addListener('dragend', handleMapZoomChanged);
+    draw();
+    mapInstance.addListener('zoom_changed', draw);
+    mapInstance.addListener('idle', handleMapZoomChanged);
+    mapInstance.addListener('idle', makeScale);
+
     // idle：當地圖進入空閒狀態時觸發。這表示地圖不再移動（包括平移和縮放）。
     // bounds_changed：當地圖的邊界框（範圍）發生變化時觸發。這可能是由於地圖的縮放或平移而導致的邊界框變化。
     // center_changed：當地圖的中心點位置發生變化時觸發。這表示地圖的中心點坐標已更新。
@@ -391,7 +642,7 @@ export default function App() {
 
   const [places, setPlaces] = useState([]);
   useEffect(() => {
-    if (isLoaded) {
+    if (map) {
       const geocoder = new google.maps.Geocoder();
 
       geocoder.geocode({ address: addressSearchString }, (results, status) => {
@@ -401,6 +652,7 @@ export default function App() {
           console.log(viewport)
           console.log(map)
           map.fitBounds(viewport);
+          setZoom(map.getZoom());
           // setCenter({
           //   lat: lat(),
           //   lng: lng()
@@ -409,9 +661,8 @@ export default function App() {
         } else {
         }
       });
-      // if (map) {
-      //   const service = new google.maps.places.PlacesService(map);
 
+      //   const service = new google.maps.places.PlacesService(map);
       //   service.nearbySearch({
       //     location: map.getCenter(),
       //     radius: 5000,
@@ -421,9 +672,8 @@ export default function App() {
       //       setPlaces(results);
       //     }
       //   });
-      // }
     }
-  }, [addressSearchString, isLoaded]);
+  }, [addressSearchString]);
 
   const generateRandomPOI = () => {
     const poiLocations = [];
@@ -441,26 +691,38 @@ export default function App() {
 
   const poiLocations = generateRandomPOI();
 
-  return (<>
-    <div className={styles.watermark}></div>
-    <div className={styles.header}>
-      <TitanIcon innerStyle={{ marginLeft: '32px' }} color='#FFFFFF' />
-    </div>
-    <div className={styles.headertopline}></div>
+  const [showWaterMark, setShowWaterMark] = useState(true);
+  const hideWatermark = () => {
+    setShowWaterMark(!showWaterMark);
+  }
 
+  const maskpolygonpath = [{ "lat": 90, "lng": 0 }, { "lat": 90, "lng": 122.56805640410275 }, { "lat": 26.559603825454303, "lng": 122.56805640410275 }, { "lat": 26.45927358654475, "lng": 120.43692159366769 }, { "lat": 26.305727867423737, "lng": 119.97990251557094 }, { "lat": 26.17392797569266, "lng": 119.87278581635219 }, { "lat": 25.850574225446113, "lng": 119.86454607025844 }, { "lat": 25.58837533199154, "lng": 120.03842572366102 }, { "lat": 25.12564449755215, "lng": 120.0315592685829 }, { "lat": 24.98631019373373, "lng": 119.1766564835979 }, { "lat": 24.42682604943217, "lng": 118.64748207020892 }, { "lat": 24.476830847184466, "lng": 118.51015296864642 }, { "lat": 24.558046273706864, "lng": 118.41264930653705 }, { "lat": 24.543056609454414, "lng": 118.31377235341205 }, { "lat": 24.432165750205392, "lng": 118.18433893035863 }, { "lat": 24.377139898107572, "lng": 118.19120538543676 }, { "lat": 21.628959591583115, "lng": 119.7769037728001 }, { "lat": 21.628959591583115, "lng": 122.56805640410275 }, { "lat": -90, "lng": 122.56805640410275 }, { "lat": -90, "lng": 0 }];
+  return (<>
+    {/* <div className={styles.counter}>
+      <h1 style={{ fontSize: '50px', fontWeight: '700', color: '#FFFFFF' }}>繪製秒數： {seconds + 3}</h1>
+    </div> */}
+    {showWaterMark ? <div className={styles.watermark}></div> : null}
+    <div className={styles.headercontainer}>
+      <div className={`${styles.header} ${styles.alignCenterV}`}>
+        <TitanIcon innerStyle={{ marginLeft: '32px' }} color='#FFFFFF' />
+      </div>
+      <div className={styles.headertopline}></div>
+      <div className={styles.headerIconRow}>
+        <div className={`${styles.headerIcon} ${styles.alignCenterV} ${styles.alignCenterH}`} onClick={hideWatermark}>HD</div>
+      </div>
+    </div>
     {isLoaded ? (
       <div className={styles.mapContainer}>
-
         {!isDrawed ? (
-          <div className={styles.mapLoadingMask}>
+          <div className={`${styles.mapLoadingMask} ${styles.alignCenterV} ${styles.alignCenterH}`}>
             <div className={styles.mapLoadingSpinner}></div>
             <p>Loading...</p>
           </div>
         ) : null}
         <GoogleMap
           mapContainerStyle={{
-            width: winWidth,
-            height: winHeight
+            width: winWidth - 0.5,
+            height: winHeight - 0.5
           }}
           center={center}
           zoom={zoom}
@@ -469,14 +731,106 @@ export default function App() {
           onClick={handleMapClick}
         // onUnmount={onUnmount}
         >
-          {polygons.map((polygon, index) => (
-            <PolygonF
-              onClick={handleMapClick}
-              key={index}
-              paths={polygon.paths}
-              options={polygon.options}
-            />
-          ))}
+          <div className={styles.bottomTools}>
+            <Row className={`${styles.bottomToolsRow} ${styles.alignCenterV} ${styles.alignCenterH}`}>
+              <div className={styles.gradiantLevelList}>
+                <Row>
+                  <Col className={styles.gradiantLevelTitle}>
+                    <span className={styles.gradiantLevelSpan}>人口、小客車熱力圖示</span>
+                  </Col>
+                  <Col className={styles.alignCenterV}>
+                    <div style={{ border: '0.5px solid #FFFFFF', width: '0px', height: '15px', margin: '0px 8px' }}></div>
+                  </Col>
+                  <Col>
+                    <Row className={styles.alignCenterV}>
+                      <span className={styles.gradiantLevelSpan}>少</span>
+                      <div className={`${styles.gradiantLevel} ${styles.gradiantLevelColor1}`}></div>
+                      <span className={styles.gradiantLevelSpan}>多</span>
+                    </Row>
+                  </Col>
+                </Row>
+                <Row >
+                  <Col className={styles.gradiantLevelTitle}>
+                    <span className={styles.gradiantLevelSpan}>車流量熱力圖示</span>
+                  </Col>
+                  <Col className={styles.alignCenterV}>
+                    <div style={{ border: '0.5px solid #FFFFFF', width: '0px', height: '15px', margin: '0px 8px' }}></div>
+                  </Col>
+                  <Col>
+                    <Row className={styles.alignCenterV}>
+                      <span className={styles.gradiantLevelSpan}>少</span>
+                      <div className={`${styles.gradiantLevel} ${styles.gradiantLevelColor2}`}></div>
+                      <span className={styles.gradiantLevelSpan}>多</span>
+                    </Row>
+                  </Col>
+                </Row>
+              </div>
+            </Row>
+            <Row className={`${styles.bottomToolsRow} ${styles.alignCenterV} ${styles.alignCenterH}`}>
+              <div className={styles.alignCenterH} style={{ width: '200px' }}>
+                <div className={`${styles.scale} ${styles.alignCenterV}`}>
+                  <div id="scale-value" className={styles.scaleValue}></div>
+                  <PolygonIcon color='#FFFFFF' innerStyle={{ position: 'relative', left: '2px' }} />
+                  <div id="scale-bar" className={styles.scaleBar}></div>
+                  <PolygonIcon color='#FFFFFF' innerStyle={{ transform: 'rotate(180deg)', position: 'relative', right: '2px' }} />
+                </div>
+              </div>
+
+              <div className={`${styles.zoomContainer} ${styles.alignCenterV} ${styles.alignCenterH}`}>
+                <Button onClick={zoomOut} className={styles.zoomButton}><MinusIcon color='#FFFFFF' /></Button>
+                <div style={{ border: '0.5px solid #A1AAB2', height: '100%', margin: '0px 8px' }}></div>
+                <Button onClick={zoomIn} className={styles.zoomButton}><PlusIcon color='#FFFFFF' /></Button>
+              </div>
+            </Row>
+
+          </div>
+          <PolygonF
+            paths={maskpolygonpath}
+            options={{
+              fillColor: '#2B2F33',
+              fillOpacity: 1,
+              strokeColor: '#2B2F33',
+              strokeOpacity: 1,
+              strokeWeight: 0,
+              cursor: 'grab'
+            }}
+          />
+          <RectangleF
+            bounds={{
+              north: 90,
+              south: -90,
+              east: 0,
+              west: 122.56805640410275,
+            }}
+            options={{
+              fillColor: '#2B2F33',
+              fillOpacity: 1,
+              strokeColor: '#2B2F33',
+              strokeOpacity: 1,
+              strokeWeight: 0,
+              cursor: 'grab'
+            }}
+          />
+          {polygons.map((polygon, index) => {
+            const pcenter = getPolygonCenter(polygon.paths);
+            // console.log(pcenter)
+            return (
+              <div key={index}>
+                <PolygonF
+                  onClick={(e) => handleMapClick(e, "鄉鎮地區")}
+                  key={index}
+                  paths={polygon.paths}
+                  options={getPolygonOptions(index)}
+                  onMouseOver={() => handleMouseOver(index)}
+                  onMouseOut={handleMouseOut}
+                />
+                {/* <PolygonLabel
+                  position={pcenter}
+                  text={polygon.label}
+                /> */}
+              </div>
+            )
+          })}
           {polylines.map((polyline, index) => (
             <PolylineF
               key={index}
@@ -495,7 +849,7 @@ export default function App() {
           />
         </GoogleMap>
       </div>) : (
-      <div className={styles.mapLoadingContainer}>
+      <div className={`${styles.mapLoadingContainer} ${styles.alignCenterV} ${styles.alignCenterH}`}>
         <div className={styles.mapLoadingSpinner}></div>
         <p>Loading...</p>
       </div>
