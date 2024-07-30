@@ -227,7 +227,7 @@
   position: absolute;
   top: 90px;
   left: 32px;
-  z-index: 1000;
+  z-index: 664;
 }
 
 .searchAreaClose {
@@ -284,11 +284,6 @@
   display: none;
 }
 
-.mapLoadingContainer {
-  width: 1519px;
-  height: 738px;
-}
-
 .mapLoadingSpinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-left-color: #333;
@@ -317,11 +312,11 @@
 }
 
 /* 隱藏左下角的google icon */
-.mapContainer a[href^="http://maps.google.com/maps"] {
+.mapContainer a[href^='http://maps.google.com/maps'] {
   display: none !important
 }
 
-.mapContainer a[href^="https://maps.google.com/maps"] {
+.mapContainer a[href^='https://maps.google.com/maps'] {
   display: none !important
 }
 
@@ -408,17 +403,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: url("watermark.png");
+  background: url('watermark.png');
   background-position: center;
   /* background-repeat: repeat; */
   background-attachment: fixed;
   z-index: 666;
   pointer-events: none;
-}
-
-.counter {
-  position: absolute;
-  bottom: 61px;
-  right: 112px;
-  z-index: 666666666666;
 }

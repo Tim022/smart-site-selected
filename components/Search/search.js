@@ -3,7 +3,7 @@ import styles from '@/pages/smart-site-selected/styles.module.css'
 import { SearchIcon, CloseIcon, InfoCircleIcon, ChevronLeftIcon } from '@/components/Icons/icons'
 import { Button, Select, Form, Input, InputNumber, Tabs } from 'antd/lib'
 
-export const AddressSearch = ({ onSubmit }) => {
+export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickArea, searchResult, setSearchResult }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchBoxClassName, setSearchBoxClassName] = useState(styles.searchAreaClose);
   const handlesearchBoxOpen = () => {
@@ -16,6 +16,7 @@ export const AddressSearch = ({ onSubmit }) => {
     // console.log('Custom control clicked!');
     setSearchOpen(false);
     setSearchBoxClassName(styles.searchAreaClose)
+    setSearchByClickArea(false)
   };
 
   const [searchMethodClassName, setSearchMethodClassName] = useState(styles.searchMethodSwitch1);
@@ -40,18 +41,23 @@ export const AddressSearch = ({ onSubmit }) => {
     setResultTypeClassName(styles.resultTypeSwitch3)
   };
 
-  const [activetab, setActivetab] = useState("1");
+  const [activetab, setActivetab] = useState('1');
+
+  const reset = () => {
+
+  }
 
   const handleSubmit = (value) => {
-    setActivetab("2");
+    setActivetab('2');
     setSearchBoxClassName(styles.searchAreaExpandResult)
     // console.log(value)
     onSubmit(value); // 將表單的值提交給父組件或其他處理函數
   };
 
   const backtoTabs1 = () => {
-    setActivetab("1");
+    setActivetab('1');
     setSearchBoxClassName(styles.searchAreaExpand)
+    setSearchByClickArea(false)
   };
   const items = [
     {
@@ -60,13 +66,13 @@ export const AddressSearch = ({ onSubmit }) => {
       children: (
         <div style={{ backgroundColor: '#454B52', borderRadius: '6px' }} >
           <div style={{ padding: '24px' }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className={styles.searchBeginText} >搜尋地區</span>
               <button onClick={handlesearchBoxClose} style={{ display: 'flex', alignItems: 'center' }}><CloseIcon color='#6CD9C7' /></button>
             </div>
             <hr style={{ borderColor: '#565C66', margin: '16px 0px' }}></hr>
             <div>
-              <span style={{ fontFamily: "Noto Sans CJK TC", fontSize: "16px", fontWeight: "400", color: '#FFF', marginBottom: '8px' }}>位置資訊</span>
+              <span style={{ fontFamily: 'Noto Sans CJK TC', fontSize: '16px', fontWeight: '400', color: '#FFF', marginBottom: '8px' }}>位置資訊</span>
               <div style={{ borderRadius: '100px', height: '38px', backgroundColor: '#676D73', display: 'flex', alignItems: 'center' }}>
                 <div className={`${styles.searchMethodSelectedBackground} ${searchMethodClassName}`}>
                 </div>
@@ -79,15 +85,15 @@ export const AddressSearch = ({ onSubmit }) => {
                 <div style={{ margin: '16px 0px' }}>
                   <Select
                     style={{ width: '109.33px', height: '40px' }}
-                    placeholder="選擇縣市"
+                    placeholder='選擇縣市'
                   />
                   <Select
                     style={{ width: '109.33px', height: '40px', margin: '0px 12px' }}
-                    placeholder="選擇地區"
+                    placeholder='選擇地區'
                   />
                   <Select
                     style={{ width: '109.33px', height: '40px' }}
-                    placeholder="選擇村里"
+                    placeholder='選擇村里'
                   />
                 </div>
                 <Form onFinish={handleSubmit} className={styles.addressSearchForm}>
@@ -102,12 +108,12 @@ export const AddressSearch = ({ onSubmit }) => {
                   >
                     <Input
                       placeholder='輸入地址'
-                      size="large"
+                      size='large'
                       style={{ width: '352px' }}
                     />
                   </Form.Item>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontFamily: "Noto Sans TC", fontSize: "16px", fontWeight: "400", color: "#FFF" }}>車格數</span>
+                    <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#FFF' }}>車格數</span>
                     <InfoCircleIcon color='#FFF' size='16' innerStyle={{ paddingBottom: '2px', marginLeft: '4px' }} />
                   </div>
                   <Form.Item
@@ -121,7 +127,7 @@ export const AddressSearch = ({ onSubmit }) => {
                   >
                     <InputNumber
                       placeholder='輸入車格數'
-                      size="large"
+                      size='large'
                       style={{ width: '352px' }}
                       onKeyPress={(event) => {
                         if (!/[0-9]/.test(event.key)) {
@@ -131,8 +137,8 @@ export const AddressSearch = ({ onSubmit }) => {
                     />
                   </Form.Item>
                   <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button >重設</Button>
-                    <Button style={{ marginLeft: '16px' }} type="primary" htmlType="submit">搜尋</Button>
+                    <Button onClick={reset}>重設</Button>
+                    <Button style={{ marginLeft: '16px' }} type='primary' htmlType='submit'>搜尋</Button>
                   </div>
                 </Form>
               </div> : null}
@@ -145,7 +151,7 @@ export const AddressSearch = ({ onSubmit }) => {
       children: (
         <div style={{ backgroundColor: '#454B52', borderRadius: '6px' }}>
           <div style={{ padding: '24px' }}>
-            <div style={{ display: "flex", alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
               <button onClick={backtoTabs1} style={{ display: 'flex', marginRight: '8px' }}><ChevronLeftIcon color='#FFF' size='20' /></button>
               <span className={styles.searchResultText} >搜尋結果</span>
               <button onClick={handlesearchBoxClose} style={{ display: 'flex', alignItems: 'center' }}><CloseIcon color='#6CD9C7' /></button>
@@ -172,12 +178,12 @@ export const AddressSearch = ({ onSubmit }) => {
 
             {resultTypeClassName == styles.resultTypeSwitch3 ?
               <div>
-                <span style={{ fontFamily: "Noto Sans TC", fontSize: "20px", fontWeight: "700", color: "#FFF", marginTop: "23px", display: "block" }}>
+                <span style={{ fontFamily: 'Noto Sans TC', fontSize: '20px', fontWeight: '700', color: '#FFF', marginTop: '23px', display: 'block' }}>
                   評估範圍：方圓3公里
                 </span>
                 <div style={{ margin: '16px 24px 24px 24px', borderRadius: '6px', backgroundColor: '#2B2F33', boxShadow: '0px 0px 5px 0px #00000033', padding: '0px 28px' }}>
                   <div style={{ height: '52px', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ fontFamily: "Noto Sans TC", fontSize: "16px", fontWeight: "700", color: "#FFF" }}>站點評分表</span>
+                    <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '700', color: '#FFF' }}>站點評分表</span>
                   </div>
                   <hr style={{ borderColor: '#565C66' }}></hr>
                   <div>圖表</div>
@@ -187,6 +193,14 @@ export const AddressSearch = ({ onSubmit }) => {
         </div>),
     }
   ];
+
+  useEffect(() => {
+    if (searchByClickArea == true) {
+      handlesearchBoxOpen();
+      setActivetab('2');
+      setSearchBoxClassName(styles.searchAreaExpandResult);
+    }
+  }, [searchByClickArea])
 
   return (
     <div className={`${styles.searchArea} ${searchBoxClassName}`}>
