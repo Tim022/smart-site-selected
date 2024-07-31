@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { GoogleMap, useLoadScript, PolygonF, PolylineF, RectangleF, MarkerF, OverlayView, OverlayViewF } from '@react-google-maps/api'
+import { GoogleMap, useLoadScript, PolygonF, PolylineF, RectangleF, MarkerF, OverlayView, OverlayViewF, CircleF } from '@react-google-maps/api'
 import axios from 'axios'
 import { AddressSearch } from '@/components/Search/search'
 import { CENTER, SCALE_WIDTH, SCALE_VALUES, MAP_STYLES, MASK_POLYGON_PATH } from '@/constant/constant'
@@ -199,6 +199,54 @@ export default function App() {
     setIsDrawed(false)
   }, [polygonFetchUrl]);
 
+  // 計算兩點之間的距離（單位：公尺）
+  const getDistanceBetweenPoints = (p1, p2) => {
+    const R = 6371000; // 地球半徑（公尺）
+    const dLat = (p2.lat - p1.lat) * (Math.PI / 180);
+    const dLng = (p2.lng - p1.lng) * (Math.PI / 180);
+    const lat1 = p1.lat * (Math.PI / 180);
+    const lat2 = p2.lat * (Math.PI / 180);
+
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.sin(dLng / 2) ** 2 *
+      Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  };
+
+  // 合併兩個圓形
+  const mergeCircles = (circles) => {
+    const merged = [];
+
+    for (let i = 0; i < circles.length; i++) {
+      let merge = false;
+      for (let j = i + 1; j < circles.length; j++) {
+        const dist = getDistanceBetweenPoints(circles[i].position, circles[j].position);
+        if (dist < circles[i].radius + circles[j].radius) {
+          merge = true;
+          const newPosition = {
+            lat: (circles[i].position.lat + circles[j].position.lat) / 2,
+            lng: (circles[i].position.lng + circles[j].position.lng) / 2,
+          };
+          const newRadius = circles[i].radius + circles[j].radius;
+          circles[i] = { position: newPosition, radius: newRadius, options: circles[i].options };
+          circles.splice(j, 1);
+          j--;
+        }
+        console.log(circles);
+      }
+      if (!merge) {
+        merged.push(circles[i]);
+      }
+    }
+
+    return circles;
+  };
+
+  // 產生圓形
+  const [circles, setCircles] = useState([]);
+
   const draw = () => {
     const mapZoomLevel = mapInstance?.getZoom();
     setZoom(mapZoomLevel);
@@ -290,6 +338,202 @@ export default function App() {
       }
     };
     fetchData();
+
+    //畫出、合併重疊的圓
+    let newCircles = [];
+    if (mapZoomLevel == 8) {
+      newCircles = [
+        {
+          position: { lat: 25.183693066572452, lng: 121.43070597812499 },
+          radius: 5400,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 25.099813326574992, lng: 121.31162744687498 },
+          radius: 10000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 25.02540812662252, lng: 121.45957110757337 },
+          radius: 8000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 24.230891764611854, lng: 121.47331891874995 },
+          radius: 5000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 24.561534547003482, lng: 121.0151493446274 },
+          radius: 5000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        }
+      ];
+    } else if (mapZoomLevel == 9) {
+      newCircles = [
+        {
+          position: { lat: 25.183693066572452, lng: 121.43070597812499 },
+          radius: 4400,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 25.099813326574992, lng: 121.31162744687498 },
+          radius: 9000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 25.02540812662252, lng: 121.45957110757337 },
+          radius: 7000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 24.230891764611854, lng: 121.47331891874995 },
+          radius: 5000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 24.561534547003482, lng: 121.0151493446274 },
+          radius: 5000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        }
+      ];
+    } else if (mapZoomLevel == 10) {
+      newCircles = [
+        {
+          position: { lat: 25.183693066572452, lng: 121.43070597812499 },
+          radius: 3400,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 25.099813326574992, lng: 121.31162744687498 },
+          radius: 8000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 25.02540812662252, lng: 121.45957110757337 },
+          radius: 6000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 24.230891764611854, lng: 121.47331891874995 },
+          radius: 5000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        },
+        {
+          position: { lat: 24.561534547003482, lng: 121.0151493446274 },
+          radius: 5000,
+          options: {
+            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
+            fillOpacity: 0.35,
+            strokeColor: 'white',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            clickable: false,
+          }
+        }
+      ];
+    }
+
+
+    setCircles(mergeCircles(newCircles));
   }
 
   const handleMapBoundsChanged = () => {
@@ -584,23 +828,26 @@ export default function App() {
               cursor: 'grab'
             }}
           />
+          {circles.map((circle, index) => (
+            <CircleF
+              key={index}
+              center={circle.position}
+              radius={circle.radius}
+              options={circle.options}
+            />
+          ))}
           {/* 行政區多邊形 */}
           {polygons.map((polygon, index) => {
             if (polygon.paths) {
               return (
-                <OverlayViewF
-                  position={center}
-                  mapPaneName={OverlayView.OVERLAY_LAYER}
-                >
-                  <PolygonF
-                    onClick={(e) => onPolygonClick(e, polygon)}
-                    key={index}
-                    paths={polygon.paths}
-                    options={getPolygonOptions(polygon.administrativeAreaLevel, index)}
-                    onMouseOver={() => handleMouseOver(index)}
-                    onMouseOut={handleMouseOut}
-                  />
-                </OverlayViewF>
+                <PolygonF
+                  onClick={(e) => onPolygonClick(e, polygon)}
+                  key={index}
+                  paths={polygon.paths}
+                  options={getPolygonOptions(polygon.administrativeAreaLevel, index)}
+                  onMouseOver={() => handleMouseOver(index)}
+                  onMouseOut={handleMouseOut}
+                />
               )
             }
           })}
@@ -613,6 +860,7 @@ export default function App() {
               if (pcenter && showWaterMark) {
                 return (
                   <PolygonLabel
+                    key={index}
                     position={pcenter}
                     text={polygon.label}
                   />
