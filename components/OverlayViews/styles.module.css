@@ -2,4 +2,5 @@
   font-size: 14px;
   color: #FFFFFF;
   width: 100px;
+  user-select: none;
 }

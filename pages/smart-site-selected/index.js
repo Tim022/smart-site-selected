@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { GoogleMap, useLoadScript, PolygonF, PolylineF, RectangleF, MarkerF, OverlayView, OverlayViewF, CircleF } from '@react-google-maps/api'
+import { GoogleMap, useJsApiLoader, PolygonF, PolylineF, RectangleF, MarkerF, OverlayView, OverlayViewF, CircleF } from '@react-google-maps/api'
 import axios from 'axios'
 import { AddressSearch } from '@/components/Search/search'
 import { CENTER, SCALE_WIDTH, SCALE_VALUES, MAP_STYLES, MASK_POLYGON_PATH } from '@/constant/constant'
@@ -37,7 +37,7 @@ const mapOptions = {
 };
 
 export default function App() {
-  const { isLoaded } = useLoadScript({
+  const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: 'AIzaSyA4mKpPVdsY-bsyJDkBuOAVYL8uUGPD5Qs',
     libraries: libraries,
   })
@@ -98,7 +98,7 @@ export default function App() {
     let fillColor;
     let strokeColor;
 
-    if (administrativeAreaLevel == "鄉鎮地區") {
+    if (administrativeAreaLevel == '縣市') {
       if (!hoveredPolygon) {
         fillColor = '#52CCCCB2';
         strokeColor = '#E5FFF580';
@@ -106,7 +106,15 @@ export default function App() {
         fillColor = hoveredPolygon === index ? '#E4FFBFCC' : '#52CCCC4D';
         strokeColor = hoveredPolygon === index ? '#FFFFFF' : '#E5FFF580';
       }
-    } else if (administrativeAreaLevel == "村里") {
+    } else if (administrativeAreaLevel == '鄉鎮地區') {
+      if (!hoveredPolygon) {
+        fillColor = '#66B1C8';
+        strokeColor = '#224F59';
+      } else {
+        fillColor = hoveredPolygon === index ? '#DAEBEB' : '#66B1C8';
+        strokeColor = hoveredPolygon === index ? '#FFFFFF' : '#439999';
+      }
+    } else {
       if (!hoveredPolygon) {
         fillColor = '#9AD3CD';
         strokeColor = '#439999';
@@ -126,13 +134,44 @@ export default function App() {
     return option;
   };
 
-  const onPolygonClick = (map, polygon) => {
+  const onPolygonClick = (mapclick, polygon) => {
     console.log('Map clicked at:', {
-      lat: map.latLng.lat(),
-      lng: map.latLng.lng(),
+      lat: mapclick.latLng.lat(),
+      lng: mapclick.latLng.lng(),
     });
 
     console.log('Polygon Clicked:', polygon);
+
+    const bounds = new window.google.maps.LatLngBounds();
+    polygon.paths[0].forEach(coord => bounds.extend(coord));
+
+    // 計算忽略區域的寬度，假設右側忽略 432px
+    const ignoredWidthPx = 432;
+    const projection = map.getProjection();
+    const boundsNE = projection.fromLatLngToPoint(bounds.getNorthEast());
+    const boundsSW = projection.fromLatLngToPoint(bounds.getSouthWest());
+    const mapWidthPx = map.getDiv().offsetWidth;
+    const adjustmentFactor = ignoredWidthPx / mapWidthPx;
+
+    // 調整左側邊界
+    const adjustedBoundsSW = new google.maps.Point(
+      boundsSW.x - adjustmentFactor * (boundsNE.x - boundsSW.x),
+      boundsSW.y
+    );
+    const adjustedBoundsNE = new google.maps.Point(
+      boundsNE.x - adjustmentFactor * (boundsNE.x - boundsSW.x),
+      boundsNE.y
+    );
+
+    // 將調整後的邊界轉換回 LatLng
+    const newBoundsSW = projection.fromPointToLatLng(adjustedBoundsSW);
+    const newBoundsNE = projection.fromPointToLatLng(adjustedBoundsNE);
+
+    // 更新地圖的邊界
+    const newBounds = new google.maps.LatLngBounds(newBoundsSW, newBoundsNE);
+    map.fitBounds(newBounds);
+
+    setSearchByClickArea(true)
     setAddressSearchString(polygon.fulladdress)
   };
 
@@ -195,9 +234,6 @@ export default function App() {
   };
 
   const [polygonFetchUrl, setPolygonFetchUrl] = useState('http://localhost:3000/TOWN_MOI_1120825_1.json');
-  useEffect(() => {
-    setIsDrawed(false)
-  }, [polygonFetchUrl]);
 
   // 計算兩點之間的距離（單位：公尺）
   const getDistanceBetweenPoints = (p1, p2) => {
@@ -217,14 +253,10 @@ export default function App() {
 
   // 合併兩個圓形
   const mergeCircles = (circles) => {
-    const merged = [];
-
     for (let i = 0; i < circles.length; i++) {
-      let merge = false;
       for (let j = i + 1; j < circles.length; j++) {
         const dist = getDistanceBetweenPoints(circles[i].position, circles[j].position);
         if (dist < circles[i].radius + circles[j].radius) {
-          merge = true;
           const newPosition = {
             lat: (circles[i].position.lat + circles[j].position.lat) / 2,
             lng: (circles[i].position.lng + circles[j].position.lng) / 2,
@@ -234,10 +266,7 @@ export default function App() {
           circles.splice(j, 1);
           j--;
         }
-        console.log(circles);
-      }
-      if (!merge) {
-        merged.push(circles[i]);
+        // console.log(circles);
       }
     }
 
@@ -247,97 +276,27 @@ export default function App() {
   // 產生圓形
   const [circles, setCircles] = useState([]);
 
-  const draw = () => {
+  const setAdministrativeAreaLevel = () => {
     const mapZoomLevel = mapInstance?.getZoom();
     setZoom(mapZoomLevel);
 
-    let administrativeAreaLevel;
-    // let polygonFetchUrl = 'http://localhost:3000/taiwan_district_boundaries.geojson'
-    let polygonFetchUrl = 'http://localhost:3000/TOWN_MOI_1120825_1.json'
-    if (mapZoomLevel >= 8 && mapZoomLevel < 14) {
-      administrativeAreaLevel = "鄉鎮地區";
-      // polygonFetchUrl = 'http://localhost:3000/taiwan_district_boundaries.geojson'
-      polygonFetchUrl = 'http://localhost:3000/TOWN_MOI_1120825_1.json'
-      setPolygonFetchUrl('http://localhost:3000/TOWN_MOI_1120825_1.json');
+    let polygonFetchUrl = 'http://blaze-be.titansiteanalysis.home/api/taiwan/geo/city/'
+    if (mapZoomLevel >= 8 && mapZoomLevel < 10) {
+      polygonFetchUrl = 'http://blaze-be.titansiteanalysis.home/api/taiwan/geo/city/'
     }
 
-    if (mapZoomLevel >= 14) {
-      administrativeAreaLevel = "村里";
-      // polygonFetchUrl = 'http://localhost:3000/taiwan_village_boundaries.geojson'
-      polygonFetchUrl = 'http://localhost:3000/VILLAGE_NLSC_1130419_1.json'
-      setPolygonFetchUrl('http://localhost:3000/VILLAGE_NLSC_1130419_1.json');
+    if (mapZoomLevel >= 10 && mapZoomLevel < 13) {
+      polygonFetchUrl = 'http://blaze-be.titansiteanalysis.home/api/taiwan/geo/district/'
     }
 
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(polygonFetchUrl); // 市區
-
-        const geoJsonData = response.data;
-        // console.log(geoJsonData)
-
-        // Extract polygons from GeoJSON data
-        const fetchedPolygons = geoJsonData.features.map((feature, index) => {
-          let paths, fulladdress, label;
-
-          if (administrativeAreaLevel == "鄉鎮地區") {
-            fulladdress = feature.properties.COUNTYNAME + feature.properties.TOWNNAME;
-            label = feature.properties.TOWNNAME;
-          } else if (administrativeAreaLevel == "村里") {
-            fulladdress = feature.properties.COUNTYNAME + feature.properties.TOWNNAME + feature.properties.VILLNAME;
-            label = feature.properties.VILLNAME;
-          }
-          if (feature.geometry?.type == 'Polygon') {
-            paths = feature.geometry?.coordinates.map((value, index) => {
-              return value.map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
-            });
-          } else if (feature.geometry?.type == 'MultiPolygon') {
-            paths = feature.geometry?.coordinates.map((value, index) => {
-              return value[0].map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
-            });
-          }
-          let result = {
-            paths: paths,
-            fulladdress: fulladdress,
-            label: label,
-            administrativeAreaLevel: administrativeAreaLevel
-            // options: {
-            //   strokeColor: '#E5FFF580',
-            //   fillColor: '#52CCCCB2',
-            //   strokeOpacity: 0.8,
-            //   strokeWeight: 1,
-            //   fillOpacity: 0.35,
-            // },
-          }
-
-          return result
-        });
-
-        // console.log(fetchedPolygons)
-        setPolygons(fetchedPolygons);
-
-        // const responseL = await axios.get('http://localhost:3000/taiwan_road.geojson'); // Replace with your GeoJSON URL
-        const responseL = await axios.get('http://localhost:3000/simpify_road.json');
-        const geoJsonDataL = responseL.data;
-        // console.log(geoJsonDataL)
-
-        // Extract polylines from GeoJSON data
-        const fetchedPolylines = geoJsonDataL.features.map(feature => ({
-          paths: feature.geometry.coordinates.map(latlon => ({ lat: latlon[1], lng: latlon[0] })),
-          options: {
-            strokeColor: '#E9FE03', // 線條顏色
-            strokeOpacity: 1.0,
-            strokeWeight: 2
-          },
-        }));
-
-        // console.log(fetchedPolylines)
-        setPolylines(fetchedPolylines);
-        setIsDrawed(true)
-      } catch (error) {
-        console.error('Error fetching GeoJSON:', error);
-      }
-    };
-    fetchData();
+    if (mapZoomLevel >= 13) {
+      const mapBounds = mapInstance?.getBounds();
+      const ne = mapBounds.getNorthEast();
+      const sw = mapBounds.getSouthWest();
+      const bbox = sw.lng() + ',' + sw.lat() + ',' + ne.lng() + ',' + ne.lat();
+      polygonFetchUrl = `http://blaze-be.titansiteanalysis.home/api/taiwan/geo/village/?in_bbox=${bbox}`
+    }
+    setPolygonFetchUrl(polygonFetchUrl);
 
     //畫出、合併重疊的圓
     let newCircles = [];
@@ -532,9 +491,124 @@ export default function App() {
       ];
     }
 
-
     setCircles(mergeCircles(newCircles));
   }
+
+  useEffect(() => {
+    setIsDrawed(false)
+    console.log(polygonFetchUrl)
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(polygonFetchUrl); // 市區
+        let geoJsonData;
+
+        const hasPagination = async (response) => {
+          let pageCount = Math.ceil(response.data.count / 60);
+          let totalFeatures = [];
+
+          const url = new URL(polygonFetchUrl);
+          const params = new URLSearchParams(url.search);
+          for (let i = 0; i < pageCount; i++) {
+            params.set('page', i + 1);
+            const pageResponse = await axios.get(`${url.origin + url.pathname}?${params.toString()}`);
+            const pageGeoJsonData = pageResponse.data;
+            totalFeatures = [...totalFeatures, ...pageGeoJsonData.features];
+          }
+
+          return {
+            features: totalFeatures
+          };
+        }
+
+        let administrativeAreaLevel;
+        if (polygonFetchUrl.includes('taiwan/geo/city')) {
+          administrativeAreaLevel = '縣市';
+          geoJsonData = response.data;
+
+        } else if (polygonFetchUrl.includes('taiwan/geo/district')) {
+          administrativeAreaLevel = '鄉鎮地區';
+
+          geoJsonData = await hasPagination(response);
+        } else if (polygonFetchUrl.includes('taiwan/geo/village')) {
+          administrativeAreaLevel = '村里';
+
+          geoJsonData = await hasPagination(response);
+        } else {
+          geoJsonData = response.data;
+        }
+
+        console.log('空間統計list', geoJsonData)
+        // Extract polygons from GeoJSON data
+        const fetchedPolygons = geoJsonData.features.map((feature, index) => {
+          let paths, fulladdress;
+
+          let label = feature.properties.name;
+          let labelpoint = { lat: feature.properties.center_latitude, lng: feature.properties.center_longitude };
+          if (administrativeAreaLevel == '縣市') {
+            // fulladdress = feature.properties.COUNTYNAME + feature.properties.TOWNNAME;
+          } else if (administrativeAreaLevel == '鄉鎮地區') {
+            // fulladdress = feature.properties.COUNTYNAME + feature.properties.TOWNNAME;
+          } else if (administrativeAreaLevel == '村里') {
+            // fulladdress = feature.properties.COUNTYNAME + feature.properties.TOWNNAME + feature.properties.VILLNAME;
+          }
+
+          if (feature.geometry?.type == 'Polygon') {
+            paths = feature.geometry?.coordinates.map((value, index) => {
+              return value.map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+            });
+          } else if (feature.geometry?.type == 'MultiPolygon') {
+            paths = feature.geometry?.coordinates.map((value, index) => {
+              return value[0].map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+            });
+          }
+          let result = {
+            paths: paths,
+            fulladdress: fulladdress,
+            label: label,
+            labelpoint: labelpoint,
+            administrativeAreaLevel: administrativeAreaLevel
+            // options: {
+            //   strokeColor: '#E5FFF580',
+            //   fillColor: '#52CCCCB2',
+            //   strokeOpacity: 0.8,
+            //   strokeWeight: 1,
+            //   fillOpacity: 0.35,
+            // },
+          }
+
+          return result
+        });
+
+        // console.log(fetchedPolygons)
+        setPolygons(fetchedPolygons);
+
+        //畫路線段
+        // // const responseL = await axios.get('http://localhost:3000/taiwan_road.geojson'); // Replace with your GeoJSON URL
+        // const responseL = await axios.get('http://localhost:3000/simpify_road.json');
+        // const geoJsonDataL = responseL.data;
+        // // console.log(geoJsonDataL)
+
+        // // Extract polylines from GeoJSON data
+        // const fetchedPolylines = geoJsonDataL.features.map(feature => ({
+        //   paths: feature.geometry.coordinates.map(latlon => ({ lat: latlon[1], lng: latlon[0] })),
+        //   options: {
+        //     strokeColor: '#E9FE03', // 線條顏色
+        //     strokeOpacity: 1.0,
+        //     strokeWeight: 2
+        //   },
+        // }));
+
+        // // console.log(fetchedPolylines)
+        // setPolylines(fetchedPolylines);
+        setTimeout(() => {
+          setIsDrawed(true)
+        }, 1000);
+      } catch (error) {
+        console.error('Error fetching GeoJSON:', error);
+      }
+    };
+    fetchData();
+  }, [polygonFetchUrl]);
 
   const handleMapBoundsChanged = () => {
     console.log(google.maps)
@@ -603,8 +677,8 @@ export default function App() {
   const handleLoad = (map) => {
     mapInstance = map;
     setMap(mapInstance)
-    draw();
-    mapInstance.addListener('zoom_changed', draw);
+    setAdministrativeAreaLevel();
+    mapInstance.addListener('idle', setAdministrativeAreaLevel);
     mapInstance.addListener('idle', handleMapBoundsChanged);
     mapInstance.addListener('idle', makeScale);
 
@@ -635,51 +709,53 @@ export default function App() {
   const [places, setPlaces] = useState([]);
   useEffect(() => {
     if (map) {
-      const geocoder = new google.maps.Geocoder();
+      if (!searchByClickArea) {
+        const geocoder = new google.maps.Geocoder();
 
-      geocoder.geocode({ address: addressSearchString }, (results, status) => {
-        if (status === 'OK' && results && results.length > 0) {
-          const { lat, lng } = results[0].geometry.location;
-          const viewport = results[0].geometry.viewport;
-          console.log('viewport', viewport)
-          console.log('map', map)
+        geocoder.geocode({ address: addressSearchString }, (results, status) => {
+          if (status === 'OK' && results && results.length > 0) {
+            const { lat, lng } = results[0].geometry.location;
+            const viewport = results[0].geometry.viewport;
+            console.log('viewport', viewport)
+            console.log('map', map)
 
-          // 計算忽略區域的寬度，假設右側忽略 432px
-          const ignoredWidthPx = 432;
-          const projection = map.getProjection();
-          const boundsNE = projection.fromLatLngToPoint(viewport.getNorthEast());
-          const boundsSW = projection.fromLatLngToPoint(viewport.getSouthWest());
-          const mapWidthPx = map.getDiv().offsetWidth;
-          const adjustmentFactor = ignoredWidthPx / mapWidthPx;
+            // 計算忽略區域的寬度，假設右側忽略 432px
+            const ignoredWidthPx = 432;
+            const projection = map.getProjection();
+            const boundsNE = projection.fromLatLngToPoint(viewport.getNorthEast());
+            const boundsSW = projection.fromLatLngToPoint(viewport.getSouthWest());
+            const mapWidthPx = map.getDiv().offsetWidth;
+            const adjustmentFactor = ignoredWidthPx / mapWidthPx;
 
-          // 調整左側邊界
-          const adjustedBoundsSW = new google.maps.Point(
-            boundsSW.x - adjustmentFactor * (boundsNE.x - boundsSW.x),
-            boundsSW.y
-          );
-          const adjustedBoundsNE = new google.maps.Point(
-            boundsNE.x - adjustmentFactor * (boundsNE.x - boundsSW.x),
-            boundsNE.y
-          );
+            // 調整左側邊界
+            const adjustedBoundsSW = new google.maps.Point(
+              boundsSW.x - adjustmentFactor * (boundsNE.x - boundsSW.x),
+              boundsSW.y
+            );
+            const adjustedBoundsNE = new google.maps.Point(
+              boundsNE.x - adjustmentFactor * (boundsNE.x - boundsSW.x),
+              boundsNE.y
+            );
 
-          // 將調整後的邊界轉換回 LatLng
-          const newBoundsSW = projection.fromPointToLatLng(adjustedBoundsSW);
-          const newBoundsNE = projection.fromPointToLatLng(adjustedBoundsNE);
+            // 將調整後的邊界轉換回 LatLng
+            const newBoundsSW = projection.fromPointToLatLng(adjustedBoundsSW);
+            const newBoundsNE = projection.fromPointToLatLng(adjustedBoundsNE);
 
-          // 更新地圖的邊界
-          const newBounds = new google.maps.LatLngBounds(newBoundsSW, newBoundsNE);
-          map.fitBounds(newBounds);
-          setSearchByClickArea(true)
+            // 更新地圖的邊界
+            const newBounds = new google.maps.LatLngBounds(newBoundsSW, newBoundsNE);
+            map.fitBounds(newBounds);
 
-          // map.fitBounds(viewport);
-          setZoom(map.getZoom());
-          // setCenter({
-          //   lat: lat(),
-          //   lng: lng()
-          // })
-          // setZoom(15)
-        }
-      });
+            // map.fitBounds(viewport);
+            setZoom(map.getZoom());
+            // setCenter({
+            //   lat: lat(),
+            //   lng: lng()
+            // })
+            // setZoom(15)
+          }
+        });
+      }
+
 
       // // place API 測試
       //   const service = new google.maps.places.PlacesService(map);
@@ -828,14 +904,14 @@ export default function App() {
               cursor: 'grab'
             }}
           />
-          {circles.map((circle, index) => (
+          {/* {circles.map((circle, index) => (
             <CircleF
               key={index}
               center={circle.position}
               radius={circle.radius}
               options={circle.options}
             />
-          ))}
+          ))} */}
           {/* 行政區多邊形 */}
           {polygons.map((polygon, index) => {
             if (polygon.paths) {
@@ -851,31 +927,28 @@ export default function App() {
               )
             }
           })}
-          {/* 行政區多邊形 label */}
-          {/* {polygons.map((polygon, index) => {
-            if (polygon.paths) {
-              const pcenter = getPolygonCenter(polygon.paths);
-              // console.log(pcenter)
+          {/* highlight 上一層的地區路徑 */}
 
-              if (pcenter && showWaterMark) {
-                return (
-                  <PolygonLabel
-                    key={index}
-                    position={pcenter}
-                    text={polygon.label}
-                  />
-                )
-              }
+          {/* 行政區多邊形 label */}
+          {polygons.map((polygon, index) => {
+            if (polygon.paths) {
+              return (
+                <PolygonLabel
+                  key={index}
+                  position={polygon.labelpoint}
+                  text={polygon.label}
+                />
+              )
             }
-          })} */}
-          {/* 線段 */}
-          {polylines.map((polyline, index) => (
+          })}
+          {/* 路線段 */}
+          {/* {polylines.map((polyline, index) => (
             <PolylineF
               key={index}
               path={polyline.paths}
               options={polyline.options}
             />
-          ))}
+          ))} */}
           {/* {poiLocations.map((poi, index) => (
           <MarkerF
             key={index}

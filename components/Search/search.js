@@ -19,26 +19,30 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
     setSearchByClickArea(false)
   };
 
-  const [searchMethodClassName, setSearchMethodClassName] = useState(styles.searchMethodSwitch1);
+  const [searchMethodClassName, setSearchMethodClassName] = useState(styles.typeSwitch1);
   const handlesearchMethod1 = () => {
-    setSearchMethodClassName(styles.searchMethodSwitch1)
+    setSearchMethodClassName(styles.typeSwitch1)
   };
 
   const handlesearchMethod2 = () => {
-    setSearchMethodClassName(styles.searchMethodSwitch2)
+    setSearchMethodClassName(styles.typeSwitch2)
   };
 
-  const [resultTypeClassName, setResultTypeClassName] = useState(styles.resultTypeSwitch1);
+  const handlesearchMethod3 = () => {
+    setSearchMethodClassName(styles.typeSwitch3)
+  };
+
+  const [resultTypeClassName, setResultTypeClassName] = useState(styles.typeSwitch1);
   const handleresultType1 = () => {
-    setResultTypeClassName(styles.resultTypeSwitch1)
+    setResultTypeClassName(styles.typeSwitch1)
   };
 
   const handleresultType2 = () => {
-    setResultTypeClassName(styles.resultTypeSwitch2)
+    setResultTypeClassName(styles.typeSwitch2)
   };
 
   const handleresultType3 = () => {
-    setResultTypeClassName(styles.resultTypeSwitch3)
+    setResultTypeClassName(styles.typeSwitch3)
   };
 
   const [activetab, setActivetab] = useState('1');
@@ -74,13 +78,14 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
             <div>
               <span style={{ fontFamily: 'Noto Sans CJK TC', fontSize: '16px', fontWeight: '400', color: '#FFF', marginBottom: '8px' }}>位置資訊</span>
               <div style={{ borderRadius: '100px', height: '38px', backgroundColor: '#676D73', display: 'flex', alignItems: 'center' }}>
-                <div className={`${styles.searchMethodSelectedBackground} ${searchMethodClassName}`}>
+                <div className={`${styles.typeSelectedBackground} ${searchMethodClassName}`}>
                 </div>
-                <button onClick={handlesearchMethod1} style={{ width: '174px', height: '32px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>自行輸入</button>
-                <button onClick={handlesearchMethod2} style={{ width: '174px', height: '32px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>地圖上釘選</button>
+                <button onClick={handlesearchMethod1} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>自行輸入</button>
+                <button onClick={handlesearchMethod2} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>地圖上釘選</button>
+                <button onClick={handlesearchMethod3} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>地圖上釘選</button>
               </div>
             </div>
-            {searchMethodClassName == styles.searchMethodSwitch1 ?
+            {searchMethodClassName == styles.typeSwitch1 ?
               <div>
                 <div style={{ margin: '16px 0px' }}>
                   <Select
@@ -159,24 +164,24 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
             <hr style={{ borderColor: '#565C66', margin: '16px 0px' }}></hr>
             <div>
               <div style={{ borderRadius: '100px', height: '38px', backgroundColor: '#676D73', display: 'flex', alignItems: 'center' }}>
-                <div className={`${styles.resultTypeSelectedBackground} ${resultTypeClassName}`}>
+                <div className={`${styles.typeSelectedBackground} ${resultTypeClassName}`}>
                 </div>
                 <button onClick={handleresultType1} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>需求圖層數據</button>
                 <button onClick={handleresultType2} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>供給圖層數據</button>
                 <button onClick={handleresultType3} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>站點評分</button>
               </div>
             </div>
-            {resultTypeClassName == styles.resultTypeSwitch1 ?
+            {resultTypeClassName == styles.typeSwitch1 ?
               <div>
                 人口統計
               </div> : null}
 
-            {resultTypeClassName == styles.resultTypeSwitch2 ?
+            {resultTypeClassName == styles.typeSwitch2 ?
               <div>
                 CPO統計
               </div> : null}
 
-            {resultTypeClassName == styles.resultTypeSwitch3 ?
+            {resultTypeClassName == styles.typeSwitch3 ?
               <div>
                 <span style={{ fontFamily: 'Noto Sans TC', fontSize: '20px', fontWeight: '700', color: '#FFF', marginTop: '23px', display: 'block' }}>
                   評估範圍：方圓3公里
