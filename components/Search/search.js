@@ -3,7 +3,7 @@ import styles from '@/pages/smart-site-selected/styles.module.css'
 import { SearchIcon, CloseIcon, InfoCircleIcon, ChevronLeftIcon } from '@/components/Icons/icons'
 import { Button, Select, Form, Input, InputNumber, Tabs } from 'antd/lib'
 
-export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickArea, searchResult, setSearchResult }) => {
+export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickArea, searchResult, setSearchResult, setHighlightPolygon }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchBoxClassName, setSearchBoxClassName] = useState(styles.searchAreaClose);
   const handlesearchBoxOpen = () => {
@@ -17,6 +17,7 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
     setSearchOpen(false);
     setSearchBoxClassName(styles.searchAreaClose)
     setSearchByClickArea(false)
+    setHighlightPolygon([])
   };
 
   const [searchMethodClassName, setSearchMethodClassName] = useState(styles.typeSwitch1);

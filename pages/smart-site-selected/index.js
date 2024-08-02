@@ -32,7 +32,7 @@ const mapOptions = {
   //   },
   //   strictBounds: false,
   // },
-  // minZoom: 8,
+  minZoom: 8,
   styles: MAP_STYLES
 };
 
@@ -101,15 +101,15 @@ export default function App() {
     if (administrativeAreaLevel == '縣市') {
       if (!hoveredPolygon) {
         fillColor = '#52CCCCB2';
-        strokeColor = '#E5FFF580';
+        strokeColor = '#52CCCCB2';
       } else {
         fillColor = hoveredPolygon === index ? '#E4FFBFCC' : '#52CCCC4D';
         strokeColor = hoveredPolygon === index ? '#FFFFFF' : '#E5FFF580';
       }
-    } else if (administrativeAreaLevel == '鄉鎮地區') {
+    } else if (administrativeAreaLevel == '鄉鎮市區') {
       if (!hoveredPolygon) {
         fillColor = '#66B1C8';
-        strokeColor = '#224F59';
+        strokeColor = '#66B1C8';
       } else {
         fillColor = hoveredPolygon === index ? '#DAEBEB' : '#66B1C8';
         strokeColor = hoveredPolygon === index ? '#FFFFFF' : '#439999';
@@ -117,7 +117,7 @@ export default function App() {
     } else {
       if (!hoveredPolygon) {
         fillColor = '#9AD3CD';
-        strokeColor = '#439999';
+        strokeColor = '#9AD3CD';
       } else {
         fillColor = hoveredPolygon === index ? '#E4FFBFCC' : '#9AD3CD';
         strokeColor = hoveredPolygon === index ? '#FFFFFF' : '#439999';
@@ -128,12 +128,14 @@ export default function App() {
       fillColor: fillColor,
       // fillOpacity: 0.6,
       strokeColor: strokeColor,
-      // strokeOpacity: 1,
+      strokeOpacity: 1,
       strokeWeight: 1
     }
     return option;
   };
 
+  const [highlightPolygon, setHighlightPolygon] = useState([]);
+  const [cityGeo, setCityGeo] = useState([]);
   const onPolygonClick = (mapclick, polygon) => {
     console.log('Map clicked at:', {
       lat: mapclick.latLng.lat(),
@@ -143,7 +145,13 @@ export default function App() {
     console.log('Polygon Clicked:', polygon);
 
     const bounds = new window.google.maps.LatLngBounds();
-    polygon.paths[0].forEach(coord => bounds.extend(coord));
+
+    if (polygon.administrativeAreaLevel == '縣市') {
+      bounds.extend({ lat: polygon.bbox[1], lng: polygon.bbox[0] });
+      bounds.extend({ lat: polygon.bbox[3], lng: polygon.bbox[2] });
+    } else {
+      polygon.paths[0].forEach(coord => bounds.extend(coord));
+    }
 
     // 計算忽略區域的寬度，假設右側忽略 432px
     const ignoredWidthPx = 432;
@@ -173,6 +181,90 @@ export default function App() {
 
     setSearchByClickArea(true)
     setAddressSearchString(polygon.fulladdress)
+
+    const getHighLightArea = async () => {
+      try {
+        const response = await axios.get(`http://blaze-be.titansiteanalysis.home/api/taiwan/reverse/address/?lat=${mapclick.latLng.lat()}&lon=${mapclick.latLng.lng()}`);
+        let highlightData = response.data;
+
+        let geoFetchURL;
+        if (polygon.administrativeAreaLevel == '縣市') {
+          geoFetchURL = `http://blaze-be.titansiteanalysis.home/api/taiwan/geo/city/${highlightData.city_code}/`;
+        } else if (polygon.administrativeAreaLevel == '鄉鎮市區') {
+          geoFetchURL = `http://blaze-be.titansiteanalysis.home/api/taiwan/geo/district/${highlightData.district_code}/`;
+        } else if (polygon.administrativeAreaLevel == '村里') {
+          geoFetchURL = `http://blaze-be.titansiteanalysis.home/api/taiwan/geo/village/${highlightData.village_code}/`;
+        }
+
+        try {
+          const geoResult = await axios.get(geoFetchURL);
+          let highlightGeo = geoResult.data;
+
+          let paths;
+          if (highlightGeo.geometry?.type == 'Polygon') {
+            paths = highlightGeo.geometry?.coordinates.map((value, index) => {
+              return value.map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+            });
+          } else if (highlightGeo.geometry?.type == 'MultiPolygon') {
+            paths = highlightGeo.geometry?.coordinates.map((value, index) => {
+              return value[0].map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+            });
+          }
+          let polygonResult = [{
+            paths: paths,
+            options: {
+              strokeColor: '#FFFFFF',
+              fillColor: '#FFFFFF',
+              strokeOpacity: 1,
+              strokeWeight: 2,
+              fillOpacity: 0,
+              clickable: false,
+              zIndex: 5
+            }
+          }]
+
+          if (polygon.administrativeAreaLevel == '縣市') {
+            const cityMaskGeo = cityGeo.features.filter(obj => obj.properties.name !== polygon.label);
+            let citymaskPaths;
+            for (let i = 0; i < cityMaskGeo.length; i++) {
+              if (cityMaskGeo[i].geometry.type == 'Polygon') {
+                citymaskPaths = cityMaskGeo[i].geometry.coordinates.map((value, index) => {
+                  return value.map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+                });
+              } else if (cityMaskGeo[i].geometry.type == 'MultiPolygon') {
+                citymaskPaths = cityMaskGeo[i].geometry.coordinates.map((value, index) => {
+                  return value[0].map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+                });
+              }
+
+              polygonResult.push(
+                {
+                  paths: citymaskPaths,
+                  options: {
+                    strokeColor: '#000000',
+                    fillColor: '#000000',
+                    strokeOpacity: 0,
+                    strokeWeight: 1,
+                    fillOpacity: 0.25,
+                    clickable: false,
+                    zIndex: 5
+                  }
+                }
+              )
+            }
+          }
+
+          console.log('HIGHLIGHT target', highlightGeo)
+          setHighlightPolygon(polygonResult);
+
+        } catch (error) {
+          console.error('Error fetching GeoJSON:', error);
+        }
+      } catch (error) {
+        console.error('Error fetching Area:', error);
+      }
+    };
+    getHighLightArea();
   };
 
   const handleMapClick = (event) => {
@@ -187,7 +279,7 @@ export default function App() {
     //     if (results[0]) {
     //       console.log(results[0])
     //       let city, town;
-    //       if (type == '鄉鎮地區') {
+    //       if (type == '鄉鎮市區') {
     //         for (let i = 0; i < results[0].address_components.length; i++) {
     //           const component = results[0].address_components[i];
     //           if (component.types.includes('administrative_area_level_1')) {
@@ -200,7 +292,7 @@ export default function App() {
     //       }
 
     //       //administrative_area_level_1 縣市
-    //       //administrative_area_level_2 鄉鎮地區
+    //       //administrative_area_level_2 鄉鎮市區
     //       //administrative_area_level_3 村里
 
     //       const address = `${city}${town}`;
@@ -233,48 +325,102 @@ export default function App() {
     }
   };
 
-  const [polygonFetchUrl, setPolygonFetchUrl] = useState('http://localhost:3000/TOWN_MOI_1120825_1.json');
-
-  // 計算兩點之間的距離（單位：公尺）
-  const getDistanceBetweenPoints = (p1, p2) => {
-    const R = 6371000; // 地球半徑（公尺）
-    const dLat = (p2.lat - p1.lat) * (Math.PI / 180);
-    const dLng = (p2.lng - p1.lng) * (Math.PI / 180);
-    const lat1 = p1.lat * (Math.PI / 180);
-    const lat2 = p2.lat * (Math.PI / 180);
-
-    const a = Math.sin(dLat / 2) ** 2 +
-      Math.sin(dLng / 2) ** 2 *
-      Math.cos(lat1) * Math.cos(lat2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-  };
-
-  // 合併兩個圓形
-  const mergeCircles = (circles) => {
-    for (let i = 0; i < circles.length; i++) {
-      for (let j = i + 1; j < circles.length; j++) {
-        const dist = getDistanceBetweenPoints(circles[i].position, circles[j].position);
-        if (dist < circles[i].radius + circles[j].radius) {
-          const newPosition = {
-            lat: (circles[i].position.lat + circles[j].position.lat) / 2,
-            lng: (circles[i].position.lng + circles[j].position.lng) / 2,
-          };
-          const newRadius = circles[i].radius + circles[j].radius;
-          circles[i] = { position: newPosition, radius: newRadius, options: circles[i].options };
-          circles.splice(j, 1);
-          j--;
-        }
-        // console.log(circles);
-      }
-    }
-
-    return circles;
-  };
+  const [polygonFetchUrl, setPolygonFetchUrl] = useState();
 
   // 產生圓形
   const [circles, setCircles] = useState([]);
+  // 計算兩點之間的距離（地球表面的距離）
+  const getDistanceBetweenPoints = (latLng1, latLng2) => {
+    const R = 6371000; // 地球半徑，單位：公里
+    const dLat = (latLng2.lat - latLng1.lat) * (Math.PI / 180);
+    const dLng = (latLng2.lng - latLng1.lng) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(latLng1.lat * (Math.PI / 180)) *
+      Math.cos(latLng2.lat * (Math.PI / 180)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // 判斷兩圓是否重疊
+  const circlesOverlap = (circle1, circle2) => {
+    const distance = getDistanceBetweenPoints(circle1.position, circle2.position);
+    return distance < (circle1.radius + circle2.radius);
+  };
+
+  // 合併圓形的中心和半徑
+  const mergeCircles = (circles) => {
+    let mergedCenter = { lat: 0, lng: 0 };
+    let totalRadius = 0;
+    let administrativeAreaLevel;
+    let count = 0;
+
+    circles.forEach(circle => {
+      mergedCenter.lat += circle.position.lat;
+      mergedCenter.lng += circle.position.lng;
+      totalRadius += circle.radius;
+      administrativeAreaLevel = circle.administrativeAreaLevel;
+      if (administrativeAreaLevel == "縣市") {
+        if (totalRadius >= 20000) {
+          totalRadius = 20000;
+        }
+      } else if (administrativeAreaLevel == "鄉鎮市區") {
+        if (totalRadius >= 10000) {
+          totalRadius = 10000;
+        }
+      }
+
+      count += 1;
+    });
+
+    // 計算平均中心點
+    mergedCenter.lat /= count;
+    mergedCenter.lng /= count;
+
+    return {
+      position: mergedCenter,
+      radius: totalRadius,
+      options: {
+        fillColor: '#85A4A0',
+        fillOpacity: 0.6,
+        strokeColor: '#85A4A0',
+        strokeOpacity: 1,
+        strokeWeight: 2,
+        clickable: false,
+        zIndex: 10
+      },
+      administrativeAreaLevel: administrativeAreaLevel
+    };
+  };
+
+  // 使用圓形數據進行檢測和合併
+  const detectAndMergeOverlap = (circles) => {
+    const mergedCircles = [];
+    const processed = new Array(circles.length).fill(false);
+
+    for (let i = 0; i < circles.length; i++) {
+      if (processed[i]) continue;
+
+      const overlappingCircles = [circles[i]];
+      processed[i] = true;
+
+      for (let j = i + 1; j < circles.length; j++) {
+        if (processed[j]) continue;
+
+        if (circlesOverlap(circles[i], circles[j])) {
+          overlappingCircles.push(circles[j]);
+          processed[j] = true;
+        }
+      }
+
+      if (overlappingCircles.length > 0) {
+        mergedCircles.push(mergeCircles(overlappingCircles));
+      }
+    }
+
+    return mergedCircles;
+  };
 
   const setAdministrativeAreaLevel = () => {
     const mapZoomLevel = mapInstance?.getZoom();
@@ -297,317 +443,129 @@ export default function App() {
       polygonFetchUrl = `http://blaze-be.titansiteanalysis.home/api/taiwan/geo/village/?in_bbox=${bbox}`
     }
     setPolygonFetchUrl(polygonFetchUrl);
-
-    //畫出、合併重疊的圓
-    let newCircles = [];
-    if (mapZoomLevel == 8) {
-      newCircles = [
-        {
-          position: { lat: 25.183693066572452, lng: 121.43070597812499 },
-          radius: 5400,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 25.099813326574992, lng: 121.31162744687498 },
-          radius: 10000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 25.02540812662252, lng: 121.45957110757337 },
-          radius: 8000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 24.230891764611854, lng: 121.47331891874995 },
-          radius: 5000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 24.561534547003482, lng: 121.0151493446274 },
-          radius: 5000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        }
-      ];
-    } else if (mapZoomLevel == 9) {
-      newCircles = [
-        {
-          position: { lat: 25.183693066572452, lng: 121.43070597812499 },
-          radius: 4400,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 25.099813326574992, lng: 121.31162744687498 },
-          radius: 9000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 25.02540812662252, lng: 121.45957110757337 },
-          radius: 7000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 24.230891764611854, lng: 121.47331891874995 },
-          radius: 5000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 24.561534547003482, lng: 121.0151493446274 },
-          radius: 5000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        }
-      ];
-    } else if (mapZoomLevel == 10) {
-      newCircles = [
-        {
-          position: { lat: 25.183693066572452, lng: 121.43070597812499 },
-          radius: 3400,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 25.099813326574992, lng: 121.31162744687498 },
-          radius: 8000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 25.02540812662252, lng: 121.45957110757337 },
-          radius: 6000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 24.230891764611854, lng: 121.47331891874995 },
-          radius: 5000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        },
-        {
-          position: { lat: 24.561534547003482, lng: 121.0151493446274 },
-          radius: 5000,
-          options: {
-            fillColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.35)`,
-            fillOpacity: 0.35,
-            strokeColor: 'white',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-          }
-        }
-      ];
-    }
-
-    setCircles(mergeCircles(newCircles));
   }
 
   useEffect(() => {
-    setIsDrawed(false)
-    console.log(polygonFetchUrl)
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(polygonFetchUrl); // 市區
-        let geoJsonData;
+    if (polygonFetchUrl) {
+      setIsDrawed(false)
+      console.log(polygonFetchUrl)
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(polygonFetchUrl); // 市區
+          let geoJsonData;
 
-        const hasPagination = async (response) => {
-          let pageCount = Math.ceil(response.data.count / 60);
-          let totalFeatures = [];
+          const hasPagination = async (response) => {
+            let pageCount = Math.ceil(response.data.count / 60);
+            let totalFeatures = [];
 
-          const url = new URL(polygonFetchUrl);
-          const params = new URLSearchParams(url.search);
-          for (let i = 0; i < pageCount; i++) {
-            params.set('page', i + 1);
-            const pageResponse = await axios.get(`${url.origin + url.pathname}?${params.toString()}`);
-            const pageGeoJsonData = pageResponse.data;
-            totalFeatures = [...totalFeatures, ...pageGeoJsonData.features];
+            const url = new URL(polygonFetchUrl);
+            const params = new URLSearchParams(url.search);
+            for (let i = 0; i < pageCount; i++) {
+              params.set('page', i + 1);
+              const pageResponse = await axios.get(`${url.origin + url.pathname}?${params.toString()}`);
+              const pageGeoJsonData = pageResponse.data;
+              totalFeatures = [...totalFeatures, ...pageGeoJsonData.features];
+            }
+
+            return {
+              features: totalFeatures
+            };
           }
 
-          return {
-            features: totalFeatures
-          };
-        }
+          let administrativeAreaLevel;
+          if (polygonFetchUrl.includes('taiwan/geo/city')) {
+            administrativeAreaLevel = '縣市';
+            geoJsonData = response.data;
+            setCityGeo(geoJsonData);
 
-        let administrativeAreaLevel;
-        if (polygonFetchUrl.includes('taiwan/geo/city')) {
-          administrativeAreaLevel = '縣市';
-          geoJsonData = response.data;
+          } else if (polygonFetchUrl.includes('taiwan/geo/district')) {
+            administrativeAreaLevel = '鄉鎮市區';
 
-        } else if (polygonFetchUrl.includes('taiwan/geo/district')) {
-          administrativeAreaLevel = '鄉鎮地區';
+            geoJsonData = await hasPagination(response);
+          } else if (polygonFetchUrl.includes('taiwan/geo/village')) {
+            administrativeAreaLevel = '村里';
 
-          geoJsonData = await hasPagination(response);
-        } else if (polygonFetchUrl.includes('taiwan/geo/village')) {
-          administrativeAreaLevel = '村里';
-
-          geoJsonData = await hasPagination(response);
-        } else {
-          geoJsonData = response.data;
-        }
-
-        console.log('空間統計list', geoJsonData)
-        // Extract polygons from GeoJSON data
-        const fetchedPolygons = geoJsonData.features.map((feature, index) => {
-          let paths, fulladdress;
-
-          let label = feature.properties.name;
-          let labelpoint = { lat: feature.properties.center_latitude, lng: feature.properties.center_longitude };
-          if (administrativeAreaLevel == '縣市') {
-            // fulladdress = feature.properties.COUNTYNAME + feature.properties.TOWNNAME;
-          } else if (administrativeAreaLevel == '鄉鎮地區') {
-            // fulladdress = feature.properties.COUNTYNAME + feature.properties.TOWNNAME;
-          } else if (administrativeAreaLevel == '村里') {
-            // fulladdress = feature.properties.COUNTYNAME + feature.properties.TOWNNAME + feature.properties.VILLNAME;
+            geoJsonData = await hasPagination(response);
+          } else {
+            geoJsonData = response.data;
           }
 
-          if (feature.geometry?.type == 'Polygon') {
-            paths = feature.geometry?.coordinates.map((value, index) => {
-              return value.map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+          console.log('空間統計list', geoJsonData)
+          // Extract polygons from GeoJSON data
+          const fetchedPolygons = geoJsonData.features.map((feature, index) => {
+            let paths, fulladdress;
+
+            let label = feature.properties.name;
+            let labelpoint = { lat: feature.properties.center_latitude, lng: feature.properties.center_longitude };
+
+            if (feature.geometry?.type == 'Polygon') {
+              paths = feature.geometry?.coordinates.map((value, index) => {
+                return value.map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+              });
+            } else if (feature.geometry?.type == 'MultiPolygon') {
+              paths = feature.geometry?.coordinates.map((value, index) => {
+                return value[0].map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
+              });
+            }
+            let result = {
+              paths: paths,
+              fulladdress: fulladdress,
+              label: label,
+              bbox: feature.geometry?.bbox,
+              labelpoint: labelpoint,
+              administrativeAreaLevel: administrativeAreaLevel
+            }
+
+            return result
+          });
+
+          // console.log(fetchedPolygons)
+          setPolygons(fetchedPolygons);
+
+          let fetchedCircles = [];
+
+          if (!polygonFetchUrl.includes('taiwan/geo/village')) {
+            fetchedCircles = geoJsonData.features.map((feature, index) => {
+              let result = {
+                position: { lat: feature.properties.center_latitude, lng: feature.properties.center_longitude },
+                radius: 7000,
+                administrativeAreaLevel: administrativeAreaLevel
+              }
+
+              return result
             });
-          } else if (feature.geometry?.type == 'MultiPolygon') {
-            paths = feature.geometry?.coordinates.map((value, index) => {
-              return value[0].map(latlng => ({ lat: latlng[1], lng: latlng[0] }))
-            });
-          }
-          let result = {
-            paths: paths,
-            fulladdress: fulladdress,
-            label: label,
-            labelpoint: labelpoint,
-            administrativeAreaLevel: administrativeAreaLevel
-            // options: {
-            //   strokeColor: '#E5FFF580',
-            //   fillColor: '#52CCCCB2',
-            //   strokeOpacity: 0.8,
-            //   strokeWeight: 1,
-            //   fillOpacity: 0.35,
-            // },
           }
 
-          return result
-        });
+          setCircles(detectAndMergeOverlap(detectAndMergeOverlap(detectAndMergeOverlap(fetchedCircles))));
 
-        // console.log(fetchedPolygons)
-        setPolygons(fetchedPolygons);
+          //畫路線段
+          // // const responseL = await axios.get('http://localhost:3000/taiwan_road.geojson'); // Replace with your GeoJSON URL
+          // const responseL = await axios.get('http://localhost:3000/simpify_road.json');
+          // const geoJsonDataL = responseL.data;
+          // // console.log(geoJsonDataL)
 
-        //畫路線段
-        // // const responseL = await axios.get('http://localhost:3000/taiwan_road.geojson'); // Replace with your GeoJSON URL
-        // const responseL = await axios.get('http://localhost:3000/simpify_road.json');
-        // const geoJsonDataL = responseL.data;
-        // // console.log(geoJsonDataL)
+          // // Extract polylines from GeoJSON data
+          // const fetchedPolylines = geoJsonDataL.features.map(feature => ({
+          //   paths: feature.geometry.coordinates.map(latlon => ({ lat: latlon[1], lng: latlon[0] })),
+          //   options: {
+          //     strokeColor: '#E9FE03', // 線條顏色
+          //     strokeOpacity: 1.0,
+          //     strokeWeight: 2
+          //   },
+          // }));
 
-        // // Extract polylines from GeoJSON data
-        // const fetchedPolylines = geoJsonDataL.features.map(feature => ({
-        //   paths: feature.geometry.coordinates.map(latlon => ({ lat: latlon[1], lng: latlon[0] })),
-        //   options: {
-        //     strokeColor: '#E9FE03', // 線條顏色
-        //     strokeOpacity: 1.0,
-        //     strokeWeight: 2
-        //   },
-        // }));
+          // // console.log(fetchedPolylines)
+          // setPolylines(fetchedPolylines);
+          setTimeout(() => {
+            setIsDrawed(true)
+          }, 500);
+        } catch (error) {
+          console.error('Error fetching GeoJSON:', error);
+        }
+      };
+      fetchData();
+    }
 
-        // // console.log(fetchedPolylines)
-        // setPolylines(fetchedPolylines);
-        setTimeout(() => {
-          setIsDrawed(true)
-        }, 1000);
-      } catch (error) {
-        console.error('Error fetching GeoJSON:', error);
-      }
-    };
-    fetchData();
   }, [polygonFetchUrl]);
 
   const handleMapBoundsChanged = () => {
@@ -681,18 +639,6 @@ export default function App() {
     mapInstance.addListener('idle', setAdministrativeAreaLevel);
     mapInstance.addListener('idle', handleMapBoundsChanged);
     mapInstance.addListener('idle', makeScale);
-
-    // idle：當地圖進入空閒狀態時觸發。這表示地圖不再移動（包括平移和縮放）。
-    // bounds_changed：當地圖的邊界框（範圍）發生變化時觸發。這可能是由於地圖的縮放或平移而導致的邊界框變化。
-    // center_changed：當地圖的中心點位置發生變化時觸發。這表示地圖的中心點坐標已更新。
-    // click：當用戶在地圖上點擊時觸發。事件對象包含點擊的位置信息（經緯度）。
-    // dblclick：當用戶在地圖上進行雙擊時觸發。事件對象也包含雙擊位置的信息。
-    // drag：當用戶在地圖上拖動時觸發。這可能是拖動地圖本身，或拖動地圖上的某些元素（如標記）。
-    // dragend：當拖動操作結束時觸發。事件對象包含拖動結束時的位置信息。
-    // dragstart：當開始進行拖動操作時觸發。事件對象包含開始拖動時的位置信息。
-    // mousemove：當用戶在地圖上移動滑鼠指針時觸發。事件對象包含滑鼠指針當前位置的經緯度。
-    // mouseout：當滑鼠指針移出地圖時觸發。
-    // mouseover：當滑鼠指針移入地圖時觸發。
   };
 
   const [addressSearchString, setAddressSearchString] = useState('');
@@ -707,6 +653,7 @@ export default function App() {
   }
 
   const [places, setPlaces] = useState([]);
+  //搜尋
   useEffect(() => {
     if (map) {
       if (!searchByClickArea) {
@@ -771,21 +718,21 @@ export default function App() {
     }
   }, [addressSearchString]);
 
-  const generateRandomPOI = () => {
-    const poiLocations = [];
-    const numPOI = 70;
-    const range = 1.0; // 1 度的範圍
+  // const generateRandomPOI = () => {
+  //   const poiLocations = [];
+  //   const numPOI = 70;
+  //   const range = 1.0; // 1 度的範圍
 
-    for (let i = 0; i < numPOI; i++) {
-      const lat = center.lat + (Math.random() - 0.5) * range;
-      const lng = center.lng + (Math.random() - 0.5) * range;
-      poiLocations.push({ lat, lng });
-    }
+  //   for (let i = 0; i < numPOI; i++) {
+  //     const lat = center.lat + (Math.random() - 0.5) * range;
+  //     const lng = center.lng + (Math.random() - 0.5) * range;
+  //     poiLocations.push({ lat, lng });
+  //   }
 
-    return poiLocations;
-  };
+  //   return poiLocations;
+  // };
 
-  const poiLocations = generateRandomPOI();
+  // const poiLocations = generateRandomPOI();
 
   const [showWaterMark, setShowWaterMark] = useState(true);
   const hideWatermark = () => {
@@ -893,7 +840,7 @@ export default function App() {
               north: 90,
               south: -90,
               east: 0,
-              west: 122.56805640410275,
+              west: 123.8252204304766,
             }}
             options={{
               fillColor: '#2B2F33',
@@ -904,14 +851,14 @@ export default function App() {
               cursor: 'grab'
             }}
           />
-          {/* {circles.map((circle, index) => (
+          {circles.map((circle, index) => (
             <CircleF
               key={index}
               center={circle.position}
               radius={circle.radius}
               options={circle.options}
             />
-          ))} */}
+          ))}
           {/* 行政區多邊形 */}
           {polygons.map((polygon, index) => {
             if (polygon.paths) {
@@ -928,7 +875,18 @@ export default function App() {
             }
           })}
           {/* highlight 上一層的地區路徑 */}
-
+          {highlightPolygon.map((polygon, index) => {
+            if (polygon.paths) {
+              return (
+                <PolygonF
+                  key={index}
+                  paths={polygon.paths}
+                  options={polygon.options}
+                  clickable={false}
+                />
+              )
+            }
+          })}
           {/* 行政區多邊形 label */}
           {polygons.map((polygon, index) => {
             if (polygon.paths) {
@@ -961,6 +919,7 @@ export default function App() {
             setSearchByClickArea={setSearchByClickArea}
             searchResult={searchResult}
             setSearchResult={setSearchResult}
+            setHighlightPolygon={setHighlightPolygon}
           />
         </GoogleMap>
       </div>) : null}
