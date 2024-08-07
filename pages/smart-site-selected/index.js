@@ -38,7 +38,7 @@ const mapOptions = {
 
 export default function App() {
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyA4mKpPVdsY-bsyJDkBuOAVYL8uUGPD5Qs',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
   })
   let mapInstance;
@@ -136,6 +136,8 @@ export default function App() {
 
   const [highlightPolygon, setHighlightPolygon] = useState([]);
   const [cityGeo, setCityGeo] = useState([]);
+
+  //點擊多邊形區塊
   const onPolygonClick = (mapclick, polygon) => {
     console.log('Map clicked at:', {
       lat: mapclick.latLng.lat(),
@@ -178,6 +180,15 @@ export default function App() {
     // 更新地圖的邊界
     const newBounds = new google.maps.LatLngBounds(newBoundsSW, newBoundsNE);
     map.fitBounds(newBounds);
+    if (polygon.administrativeAreaLevel == '縣市') {
+      if (map.getZoom() < 10) {
+        map.setZoom(10)
+      }
+    } else if (polygon.administrativeAreaLevel == '鄉鎮市區') {
+      if (map.getZoom() < 14) {
+        map.setZoom(14)
+      }
+    }
 
     setSearchByClickArea(true)
     setAddressSearchString(polygon.fulladdress)
@@ -431,11 +442,11 @@ export default function App() {
       polygonFetchUrl = 'http://blaze-be.titansiteanalysis.home/api/taiwan/geo/city/'
     }
 
-    if (mapZoomLevel >= 10 && mapZoomLevel < 13) {
+    if (mapZoomLevel >= 10 && mapZoomLevel < 14) {
       polygonFetchUrl = 'http://blaze-be.titansiteanalysis.home/api/taiwan/geo/district/'
     }
 
-    if (mapZoomLevel >= 13) {
+    if (mapZoomLevel >= 14) {
       const mapBounds = mapInstance?.getBounds();
       const ne = mapBounds.getNorthEast();
       const sw = mapBounds.getSouthWest();
@@ -451,7 +462,7 @@ export default function App() {
       console.log(polygonFetchUrl)
       const fetchData = async () => {
         try {
-          const response = await axios.get(polygonFetchUrl); // 市區
+          const response = await axios.get(polygonFetchUrl);
           let geoJsonData;
 
           const hasPagination = async (response) => {
@@ -632,13 +643,41 @@ export default function App() {
       }
     }
   }
+
+  const getMapPinningPosition = () => {
+    if (map) {
+      const bounds = new window.google.maps.LatLngBounds(map.getCenter());
+      const projection = map.getProjection();
+      const boundsNE = projection.fromLatLngToPoint(bounds.getNorthEast());
+      const boundsSW = projection.fromLatLngToPoint(bounds.getSouthWest());
+
+      const offset = -432 / Math.pow(2, map.getZoom());
+      const newBoundsNE = new google.maps.Point(boundsNE.x - offset, boundsNE.y);
+      const newBoundsSW = boundsSW;
+
+      const newNE = projection.fromPointToLatLng(newBoundsNE);
+      const newSW = projection.fromPointToLatLng(newBoundsSW);
+
+      const newCenterLat = (newNE.lat() + newSW.lat()) / 2;
+      const newCenterLng = (newNE.lng() + newSW.lng()) / 2;
+      return { lat: newCenterLat, lng: newCenterLng };
+    }
+
+  }
   const handleLoad = (map) => {
     mapInstance = map;
     setMap(mapInstance)
     setAdministrativeAreaLevel();
+    getMapPinningPosition();
+    // const bounds = new window.google.maps.LatLngBounds(center);
+    // bounds.extend({ lat: 22.156313582498615, lng: 119.41642519021222 });
+    // bounds.extend({ lat: 25.184191640088198, lng: 122.03024641210216 });
+    // map.fitBounds(bounds)
+
     mapInstance.addListener('idle', setAdministrativeAreaLevel);
     mapInstance.addListener('idle', handleMapBoundsChanged);
     mapInstance.addListener('idle', makeScale);
+    mapInstance.addListener('drag', getMapPinningPosition);
   };
 
   const [addressSearchString, setAddressSearchString] = useState('');
@@ -653,6 +692,8 @@ export default function App() {
   }
 
   const [places, setPlaces] = useState([]);
+
+  const [mapPinning, setMapPinning] = useState(false);
   //搜尋
   useEffect(() => {
     if (map) {
@@ -754,8 +795,10 @@ export default function App() {
       <div className={styles.mapContainer}>
         {!isDrawed ? (
           <div className={`${styles.mapLoadingMask} ${styles.alignCenterV} ${styles.alignCenterH}`}>
-            <div className={styles.mapLoadingSpinner}></div>
-            <p>Loading...</p>
+            <div className={styles.mapLoadingModal}>
+              <div className={styles.mapLoadingSpinner}></div>
+              <p>運算中請稍候...</p>
+            </div>
           </div>
         ) : null}
         <GoogleMap
@@ -851,14 +894,18 @@ export default function App() {
               cursor: 'grab'
             }}
           />
-          {circles.map((circle, index) => (
-            <CircleF
-              key={index}
-              center={circle.position}
-              radius={circle.radius}
-              options={circle.options}
-            />
-          ))}
+          {circles.map((circle, index) => {
+            if (circle.position && showWaterMark) { //圓圈隨浮水印顯示
+              return (
+                <CircleF
+                  key={index}
+                  center={circle.position}
+                  radius={circle.radius}
+                  options={circle.options}
+                />
+              )
+            }
+          })}
           {/* 行政區多邊形 */}
           {polygons.map((polygon, index) => {
             if (polygon.paths) {
@@ -913,6 +960,13 @@ export default function App() {
             position={poi}
           />
         ))} */}
+          {
+            mapPinning ?
+              <MarkerF
+                position={getMapPinningPosition()}
+              /> : null
+          }
+
           <AddressSearch
             onSubmit={handleSubmit}
             searchByClickArea={searchByClickArea}
@@ -920,6 +974,7 @@ export default function App() {
             searchResult={searchResult}
             setSearchResult={setSearchResult}
             setHighlightPolygon={setHighlightPolygon}
+            setMapPinning={setMapPinning}
           />
         </GoogleMap>
       </div>) : null}

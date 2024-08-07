@@ -221,77 +221,41 @@
   margin-right: 30px;
 }
 
-.searchArea {
+.mapLoadingModal {
   background-color: #454B52;
-  transition: All 0.3s;
-  position: absolute;
-  top: 90px;
-  left: 32px;
-  z-index: 664;
-}
-
-.searchAreaClose {
-  width: 112px;
-  height: 38px;
-  border-radius: 100px;
-  box-shadow: 0px 0px 4px 0px #FFFFFF40 inset;
-}
-
-.searchAreaExpand {
-  width: 400px;
-  height: 432px;
+  width: 312px;
+  height: 152px;
   border-radius: 6px;
-  box-shadow: 0px 0px 5px 0px #00000033;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.searchAreaExpandResult {
-  width: 400px;
-  height: 542px;
-  border-radius: 6px;
-  box-shadow: 0px 0px 5px 0px #00000033;
-}
-
-.searchBeginButton {
-  background-color: #454B52;
-  box-shadow: 0px 0px 4px 0px #FFFFFF40 inset;
-  padding: 10px 16px;
-  border-radius: 100px;
+.mapLoadingModal :global(p) {
   font-family: 'Noto Sans TC';
-  font-size: 14px;
-  font-weight: 400;
-  color: #FFFFFF;
-  line-height: normal;
-  gap: 8px;
-}
-
-.searchBeginText {
-  animation: changeFont 0.3s forwards;
-  font-family: 'Noto Sans CJK TC';
-  margin-right: auto;
-  line-height: normal;
-}
-
-.searchResultText {
-  font-family: 'Noto Sans CJK TC';
-  margin-right: auto;
-  line-height: normal;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
-  color: #FFF;
-}
-
-.addressSearchTabs :global(.ant-tabs-nav) {
-  display: none;
+  color: #E1EAF2;
 }
 
 .mapLoadingSpinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #333;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-right: 10px;
+  background:
+    radial-gradient(farthest-side, #4DBFB6 94%, #0000) bottom/8px 8px no-repeat,
+    conic-gradient(from 0.5turn at 50% 30%, #4DBFB6, #0000);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+  mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+  animation: l13 1s infinite linear;
+}
+
+@keyframes l13 {
+  100% {
+    transform: rotate(-1turn)
+  }
 }
 
 .mapContainer {
@@ -327,54 +291,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.typeSelectedBackground {
-  width: 116px;
-  height: 32px;
-  border-radius: 100px;
-  background: #2B2F33;
-  box-shadow: 0px 2px 8px 0px #0000000D;
-  position: absolute;
-  z-index: 1;
-  transition: All 0.3s;
-}
-
-.typeSwitch1 {
-  margin-left: 2px;
-}
-
-.typeSwitch2 {
-  margin-left: 118px;
-}
-
-.typeSwitch3 {
-  margin-left: 234px;
-}
-
-.addressSearchForm :global(.ant-form-item) {
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes changeFont {
-  0% {
-    font-size: 14px;
-    font-weight: 400;
-    color: #00000000;
-  }
-
-  100% {
-    font-size: 20px;
-    font-weight: 700;
-    color: #FFF;
-  }
+  background-color: #00000040;
 }
 
 .watermark {

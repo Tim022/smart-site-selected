@@ -1,0 +1,236 @@
+.alignCenterV {
+  display: flex;
+  align-items: center;
+}
+
+.alignCenterH {
+  display: flex;
+  justify-content: center;
+}
+
+.searchAreaClose {
+  width: 112px;
+  height: 38px;
+  border-radius: 100px;
+  box-shadow: 0px 0px 4px 0px #FFFFFF40 inset;
+}
+
+.searchAreaExpand {
+  width: 400px;
+  border-radius: 6px;
+  box-shadow: 0px 0px 5px 0px #00000033;
+}
+
+.searchAreaExpandResult {
+  width: 400px;
+  border-radius: 6px;
+  box-shadow: 0px 0px 5px 0px #00000033;
+}
+
+.typeSwitch1 {
+  margin-left: 2px;
+}
+
+.typeSwitch2 {
+  margin-left: 118px;
+}
+
+.typeSwitch3 {
+  margin-left: 234px;
+}
+
+.searchBeginButton {
+  background-color: #454B52;
+  box-shadow: 0px 0px 4px 0px #FFFFFF40 inset;
+  padding: 10px 16px;
+  border-radius: 100px;
+  font-family: 'Noto Sans TC';
+  font-size: 14px;
+  font-weight: 400;
+  color: #FFFFFF;
+  line-height: normal;
+  gap: 8px;
+}
+
+.searchBeginText {
+  animation: changeFont 0.3s forwards;
+  font-family: 'Noto Sans CJK TC';
+  margin-right: auto;
+  line-height: normal;
+}
+
+.searchResultText {
+  font-family: 'Noto Sans CJK TC';
+  margin-right: auto;
+  line-height: normal;
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFF;
+}
+
+.typeSelectedBackground {
+  width: 116px;
+  height: 32px;
+  border-radius: 100px;
+  background: #2B2F33;
+  box-shadow: 0px 2px 8px 0px #0000000D;
+  position: absolute;
+  z-index: 1;
+  transition: All 0.3s;
+}
+
+.addressSearchForm :global(.ant-form-item) {
+  margin-bottom: 0px;
+}
+
+@keyframes changeFont {
+  0% {
+    font-size: 14px;
+    font-weight: 400;
+    color: #00000000;
+  }
+
+  100% {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFF;
+  }
+}
+
+.searchArea {
+  background-color: #454B52;
+  transition: All 0.3s;
+  position: absolute;
+  top: 90px;
+  left: 32px;
+  z-index: 664;
+}
+
+.searchArea :global(.ant-select-selector) {
+  background: #565C66 !important;
+  border: 1px solid #565C66 !important;
+  font-family: 'Noto Sans TC';
+  font-weight: 400;
+  color: #FFFFFF;
+}
+
+.searchArea :global(.ant-select-selection-placeholder),
+.searchArea :global(.ant-select-single.ant-select-open .ant-select-selection-item) {
+  font-family: 'Noto Sans TC';
+  font-weight: 400;
+  color: #A1AAB2;
+}
+
+.searchArea :global(.ant-select-arrow) {
+  color: #FFFFFF;
+}
+
+.selectDropdownDark {
+  background-color: #565C66;
+}
+
+.selectDropdownDark :global(.ant-select-item) {
+  color: #FFFFFF;
+}
+
+.selectDropdownDark :global(.ant-select-item-option-selected:not(.ant-select-item-option-disabled)) {
+  background-color: #26869980;
+  color: #FFFFFF;
+}
+
+.searchArea :global(.ant-select-focused .ant-select-selector),
+.searchArea :global(.ant-select-selector:hover),
+.searchArea :global(.ant-select-selector:focus),
+.searchArea :global(.ant-select-selector:active),
+.searchArea :global(.ant-select-open .ant-select-selector) {
+  border-color: #4DBFB6 !important;
+  box-shadow: 0 0 0 2px #F4E8271a !important;
+}
+
+.addressSearchTabs :global(.ant-tabs-nav) {
+  display: none;
+}
+
+.inputDark,
+.inputDark :global(.ant-input-number-input) {
+  background: #565C66 !important;
+  background-color: #565C66 !important;
+  border-width: 1px;
+  border-color: #565C66;
+  border-radius: 6px;
+  font-family: 'Noto Sans TC';
+  font-weight: 400;
+  color: #FFFFFF;
+  z-index: 5;
+}
+
+.inputDark:hover,
+.inputDark:focus,
+.inputDark:global(.ant-input-number-outlined:focus-within),
+.inputDrag:global(.ant-input-outlined) {
+  border-width: 1px;
+  border-color: #4DBFB6;
+}
+
+.inputDark::placeholder,
+.inputDark :global(.ant-input-number-input)::placeholder {
+  font-family: 'Noto Sans TC';
+  font-weight: 400;
+  color: #A1AAB2;
+}
+
+.inputDark :global(.ant-input-number-handler-wrap) {
+  background: #565C66;
+}
+
+.inputDark :global(.ant-input-number-handler-up-inner),
+.inputDark :global(.ant-input-number-handler:hover .ant-input-number-handler-up-inner),
+.inputDark :global(.ant-input-number-handler-down-inner),
+.inputDark :global(.ant-input-number-handler:hover .ant-input-number-handler-down-inner) {
+  color: #4DBFB6;
+}
+
+.inputDark :global(.ant-input-number-handler-up-disabled .ant-input-number-handler-down-inner),
+.inputDark :global(.ant-input-number-handler-down-disabled .ant-input-number-handler-down-inner) {
+  color: #707880;
+}
+
+.formValidInfoMoveIn {
+  height: 12px;
+  transition: all 0.3s;
+}
+
+.formValidInfoMoveOut {
+  height: 0px;
+  transition: all 0.3s;
+}
+
+.btnPrimary {
+  font-family: 'Noto Sans TC';
+  font-weight: 700;
+  color: #FFFFFF;
+  background: #4DBFB6;
+  width: 76px;
+  height: 34px;
+  border-radius: 6px;
+}
+
+.btnPrimary:hover {
+  background: #58d8cd !important;
+}
+
+.btnReset {
+  font-family: 'Noto Sans TC';
+  font-weight: 700;
+  color: #FFFFFF;
+  background: #ffffff00;
+  width: 76px;
+  height: 34px;
+  border-radius: 6px;
+}
+
+.btnReset:hover {
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+  background: #ffffff27 !important;
+}

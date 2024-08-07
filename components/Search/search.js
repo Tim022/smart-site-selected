@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import styles from '@/pages/smart-site-selected/styles.module.css'
+import styles from './styles.module.css'
 import { SearchIcon, CloseIcon, InfoCircleIcon, ChevronLeftIcon } from '@/components/Icons/icons'
-import { Button, Select, Form, Input, InputNumber, Tabs } from 'antd/lib'
+import { Button, Select, Form, Input, InputNumber, Tabs, Row, Col } from 'antd/lib'
 
-export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickArea, searchResult, setSearchResult, setHighlightPolygon }) => {
+export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickArea, searchResult, setSearchResult, setHighlightPolygon, setMapPinning }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchBoxClassName, setSearchBoxClassName] = useState(styles.searchAreaClose);
+
+  const [formAddress] = Form.useForm();
   const handlesearchBoxOpen = () => {
     // console.log('Custom control clicked!');
     setSearchOpen(true);
@@ -18,19 +20,27 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
     setSearchBoxClassName(styles.searchAreaClose)
     setSearchByClickArea(false)
     setHighlightPolygon([])
+    setShowFormValidInfo(false)
+    setShowFormValidInfo2(false)
+    setActivetab('1');
+
+    formAddress.resetFields();
   };
 
   const [searchMethodClassName, setSearchMethodClassName] = useState(styles.typeSwitch1);
   const handlesearchMethod1 = () => {
     setSearchMethodClassName(styles.typeSwitch1)
+    setMapPinning(false);
   };
 
   const handlesearchMethod2 = () => {
     setSearchMethodClassName(styles.typeSwitch2)
+    setMapPinning(true);
   };
 
   const handlesearchMethod3 = () => {
     setSearchMethodClassName(styles.typeSwitch3)
+    setMapPinning(false);
   };
 
   const [resultTypeClassName, setResultTypeClassName] = useState(styles.typeSwitch1);
@@ -52,11 +62,29 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
 
   }
 
-  const handleSubmit = (value) => {
-    setActivetab('2');
-    setSearchBoxClassName(styles.searchAreaExpandResult)
-    // console.log(value)
-    onSubmit(value); // 將表單的值提交給父組件或其他處理函數
+  const [showFormValidInfo, setShowFormValidInfo] = useState(false)
+  const [showFormValidInfo2, setShowFormValidInfo2] = useState(false)
+  const handleSubmit = () => {
+    formAddress.validateFields()
+      .then((values) => {
+        setActivetab('2');
+        setSearchBoxClassName(styles.searchAreaExpandResult)
+        // console.log(value)
+        onSubmit(values); // 將表單的值提交給父組件或其他處理函數
+
+        setShowFormValidInfo(false)
+        setShowFormValidInfo2(false)
+      })
+      .catch((errorInfo) => {
+        console.log(errorInfo);
+        if (searchMethodClassName == styles.typeSwitch3) {
+          setShowFormValidInfo2(true)
+        } else {
+          if (!errorInfo.values.addressfullname) {
+            setShowFormValidInfo(true)
+          }
+        }
+      });
   };
 
   const backtoTabs1 = () => {
@@ -76,78 +104,200 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
               <button onClick={handlesearchBoxClose} style={{ display: 'flex', alignItems: 'center' }}><CloseIcon color='#6CD9C7' /></button>
             </div>
             <hr style={{ borderColor: '#565C66', margin: '16px 0px' }}></hr>
-            <div>
+            <div style={{ marginBottom: '16px' }}>
               <span style={{ fontFamily: 'Noto Sans CJK TC', fontSize: '16px', fontWeight: '400', color: '#FFF', marginBottom: '8px' }}>位置資訊</span>
               <div style={{ borderRadius: '100px', height: '38px', backgroundColor: '#676D73', display: 'flex', alignItems: 'center' }}>
                 <div className={`${styles.typeSelectedBackground} ${searchMethodClassName}`}>
                 </div>
                 <button onClick={handlesearchMethod1} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>自行輸入</button>
                 <button onClick={handlesearchMethod2} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>地圖上釘選</button>
-                <button onClick={handlesearchMethod3} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>地圖上釘選</button>
+                <button onClick={handlesearchMethod3} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>選擇地區</button>
               </div>
             </div>
-            {searchMethodClassName == styles.typeSwitch1 ?
-              <div>
-                <div style={{ margin: '16px 0px' }}>
-                  <Select
-                    style={{ width: '109.33px', height: '40px' }}
-                    placeholder='選擇縣市'
-                  />
-                  <Select
-                    style={{ width: '109.33px', height: '40px', margin: '0px 12px' }}
-                    placeholder='選擇地區'
-                  />
-                  <Select
-                    style={{ width: '109.33px', height: '40px' }}
-                    placeholder='選擇村里'
-                  />
-                </div>
-                <Form onFinish={handleSubmit} className={styles.addressSearchForm}>
-                  <Form.Item
-                    name='addressfullname'
-                  // rules={[
-                  //   {
-                  //     required: true,
-                  //     message: '請輸入地址'
-                  //   },
-                  // ]}
-                  >
-                    <Input
-                      placeholder='輸入地址'
-                      size='large'
-                      style={{ width: '352px' }}
-                    />
-                  </Form.Item>
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#FFF' }}>車格數</span>
-                    <InfoCircleIcon color='#FFF' size='16' innerStyle={{ paddingBottom: '2px', marginLeft: '4px' }} />
+            <Form form={formAddress} className={styles.addressSearchForm}>
+              {
+                searchMethodClassName == styles.typeSwitch3 ?
+                  <div >
+                    <Row gutter={14}>
+                      <Col>
+                        <Form.Item
+                          name='city'
+                          rules={[
+                            {
+                              required: true,
+                              message: ''
+                            },
+                          ]}
+                        >
+                          <Select
+                            popupClassName={styles.selectDropdownDark}
+                            style={{ width: '108px', height: '40px' }}
+                            placeholder='選擇縣市'
+                            options={[
+                              {
+                                label: '台北市',
+                                value: 1
+                              },
+                              {
+                                label: '新北市',
+                                value: 2
+                              },
+                              {
+                                label: '桃園市',
+                                value: 3
+                              }
+                            ]}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col>
+                        <Form.Item
+                          name='county'
+                          rules={[
+                            {
+                              required: true,
+                              message: ''
+                            },
+                          ]}
+                        >
+                          <Select
+                            popupClassName={styles.selectDropdownDark}
+                            style={{ width: '108px', height: '40px' }}
+                            placeholder='--'
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col>
+                        <Form.Item
+                          name='village'
+                          rules={[
+                            {
+                              required: true,
+                              message: ''
+                            },
+                          ]}
+                        >
+                          <Select
+                            popupClassName={styles.selectDropdownDark}
+                            style={{ width: '108px', height: '40px' }}
+                            placeholder='--'
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    {
+                      showFormValidInfo2 ?
+                        <div className={showFormValidInfo2 ? styles.formValidInfoMoveIn : styles.formValidInfoMoveOut} >
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px' }}>
+                            <InfoCircleIcon size={14} color='#4DBFB6' />
+                            <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#4DBFB6', marginLeft: '4px' }}>
+                              請輸入位置資訊
+                            </span>
+                          </div>
+                        </div> : <div style={{ height: '0px' }}></div>
+                    }
+                  </div> :
+                  <div>
+                    <Row>
+                      <Form.Item
+                        name='addressfullname'
+                        rules={[
+                          {
+                            required: true,
+                            message: ''
+                          },
+                        ]}
+                      >
+                        <Input
+                          className={searchMethodClassName == styles.typeSwitch2 ? `${styles.inputDark} ${styles.inputDrag}` : `${styles.inputDark}`}
+                          placeholder='輸入地址'
+                          size='large'
+                          style={{ width: '352px' }}
+                          disabled={searchMethodClassName == styles.typeSwitch2}
+                        />
+                      </Form.Item>
+                      {
+                        showFormValidInfo || searchMethodClassName == styles.typeSwitch2 ?
+                          <div className={showFormValidInfo || searchMethodClassName == styles.typeSwitch2 ? styles.formValidInfoMoveIn : styles.formValidInfoMoveOut} >
+                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px' }}>
+                              <InfoCircleIcon size={14} color='#4DBFB6' />
+                              <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#4DBFB6', marginLeft: '4px' }}>
+                                {searchMethodClassName == styles.typeSwitch1 ? '請輸入位置資訊' : '拖曳地圖以移動大頭針'}
+                              </span>
+                            </div>
+                          </div> : <div style={{ height: '0px' }}></div>
+                      }
+                    </Row>
+
+                    <Row style={showFormValidInfo || searchMethodClassName == styles.typeSwitch2 ? { marginTop: '36px' } : { marginTop: '20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#FFF' }}>場域面積(㎡)</span>
+                      </div>
+                      <Form.Item
+                        name='area'
+                      >
+                        <InputNumber
+                          className={styles.inputDark}
+                          placeholder='輸入場域面積'
+                          size='large'
+                          style={{ width: '352px' }}
+                          min={0}
+                          onKeyPress={(event) => {
+                            if (!/[0-9]/.test(event.key)) {
+                              event.preventDefault();
+                            }
+                          }}
+                        />
+                      </Form.Item>
+                    </Row>
+
+                    <Row style={{ marginTop: '20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#FFF' }}>車格數</span>
+                        <InfoCircleIcon color='#FFF' size='16' innerStyle={{ marginLeft: '4px' }} />
+                      </div>
+                      <Form.Item
+                        name='carslots'
+                        rules={[
+                          {
+                            required: true,
+                            message: '數字不可為0或大於系統建議值'
+                          },
+                          {
+                            type: "number",
+                            min: 1,
+                            message: '數字不可為0或大於系統建議值'
+                          },
+                          {
+                            type: "number",
+                            max: 999,
+                            message: '數字不可為0或大於系統建議值'
+                          }
+                        ]}
+                      >
+                        <InputNumber
+                          className={styles.inputDark}
+                          placeholder='輸入車格數'
+                          size='large'
+                          style={{ width: '352px' }}
+                          min={0}
+                          onKeyPress={(event) => {
+                            if (!/[0-9]/.test(event.key)) {
+                              event.preventDefault();
+                            }
+                          }}
+                        />
+                      </Form.Item>
+                    </Row>
                   </div>
-                  <Form.Item
-                    name='carslots'
-                  // rules={[
-                  //   {
-                  //     required: true,
-                  //     message: '請輸入車格數'
-                  //   },
-                  // ]}
-                  >
-                    <InputNumber
-                      placeholder='輸入車格數'
-                      size='large'
-                      style={{ width: '352px' }}
-                      onKeyPress={(event) => {
-                        if (!/[0-9]/.test(event.key)) {
-                          event.preventDefault();
-                        }
-                      }}
-                    />
-                  </Form.Item>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button onClick={reset}>重設</Button>
-                    <Button style={{ marginLeft: '16px' }} type='primary' htmlType='submit'>搜尋</Button>
-                  </div>
-                </Form>
-              </div> : null}
+              }
+            </Form>
+
+            <hr style={{ borderColor: '#565C66', margin: '48px 0px 16px 0px' }}></hr>
+            <Row style={{ marginTop: '20px', justifyContent: 'flex-end' }}>
+              <Button className={styles.btnReset} onClick={reset}>重設</Button>
+              <Button className={styles.btnPrimary} style={{ marginLeft: '16px' }} type='primary' onClick={handleSubmit}>搜尋</Button>
+            </Row>
           </div>
         </div>),
     },
@@ -174,7 +324,10 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
             </div>
             {resultTypeClassName == styles.typeSwitch1 ?
               <div>
-                人口統計
+                人口統計<br />
+                小客車統計<br />
+                道路小客車流統計<br />
+                POI統計
               </div> : null}
 
             {resultTypeClassName == styles.typeSwitch2 ?
@@ -228,7 +381,6 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
         </button>
       }
     </div >
-
   );
 };
 

@@ -200,7 +200,8 @@ export const MAP_STYLES = [
     'elementType': 'geometry',
     'stylers': [
       {
-        'color': '#746855'
+        // 'color': '#746855'
+        'visibility': 'off' //隱藏預設高速公路
       }
     ]
   },
