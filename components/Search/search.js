@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import styles from './styles.module.css'
 import { SearchIcon, CloseIcon, InfoCircleIcon, ChevronLeftIcon } from '@/components/Icons/icons'
+import { GaugeBasic, BarBasic } from '@/components/Charts/charts'
 import { Button, Select, Form, Input, InputNumber, Tabs, Row, Col } from 'antd/lib'
 
-export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickArea, searchResult, setSearchResult, setHighlightPolygon, setMapPinning }) => {
+export const AddressSearch = (
+  {
+    onSubmit,
+    searchByClickArea,
+    setSearchByClickArea,
+    addressSearchString,
+    searchResult,
+    setSearchResult,
+    setHighlightPolygon,
+    setMapPinning,
+    openNotification,
+    closeNotification
+  }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchBoxClassName, setSearchBoxClassName] = useState(styles.searchAreaClose);
 
@@ -12,6 +25,11 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
     // console.log('Custom control clicked!');
     setSearchOpen(true);
     setSearchBoxClassName(styles.searchAreaExpand)
+
+    if (searchMethodClassName == styles.typeSwitch2) {
+      openNotification()
+      setMapPinning(true)
+    }
   };
 
   const handlesearchBoxClose = () => {
@@ -22,6 +40,8 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
     setHighlightPolygon([])
     setShowFormValidInfo(false)
     setShowFormValidInfo2(false)
+    closeNotification()
+    setMapPinning(false)
     setActivetab('1');
 
     formAddress.resetFields();
@@ -30,16 +50,19 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
   const [searchMethodClassName, setSearchMethodClassName] = useState(styles.typeSwitch1);
   const handlesearchMethod1 = () => {
     setSearchMethodClassName(styles.typeSwitch1)
+    closeNotification()
     setMapPinning(false);
   };
 
   const handlesearchMethod2 = () => {
     setSearchMethodClassName(styles.typeSwitch2)
+    openNotification()
     setMapPinning(true);
   };
 
   const handlesearchMethod3 = () => {
     setSearchMethodClassName(styles.typeSwitch3)
+    closeNotification()
     setMapPinning(false);
   };
 
@@ -64,6 +87,7 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
 
   const [showFormValidInfo, setShowFormValidInfo] = useState(false)
   const [showFormValidInfo2, setShowFormValidInfo2] = useState(false)
+
   const handleSubmit = () => {
     formAddress.validateFields()
       .then((values) => {
@@ -306,7 +330,7 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
       label: '搜尋結果',
       children: (
         <div style={{ backgroundColor: '#454B52', borderRadius: '6px' }}>
-          <div style={{ padding: '24px' }}>
+          <div style={{ padding: '24px', maxHeight: 'calc(100vh - 124px)' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <button onClick={backtoTabs1} style={{ display: 'flex', marginRight: '8px' }}><ChevronLeftIcon color='#FFF' size='20' /></button>
               <span className={styles.searchResultText} >搜尋結果</span>
@@ -337,15 +361,38 @@ export const AddressSearch = ({ onSubmit, searchByClickArea, setSearchByClickAre
 
             {resultTypeClassName == styles.typeSwitch3 ?
               <div>
-                <span style={{ fontFamily: 'Noto Sans TC', fontSize: '20px', fontWeight: '700', color: '#FFF', marginTop: '23px', display: 'block' }}>
-                  評估範圍：方圓3公里
+                <span style={{ fontFamily: 'Noto Sans TC', fontSize: '20px', fontWeight: '700', color: '#FFF', marginTop: '24px', display: 'block' }}>
+                  搜集範圍：方圓3公里
                 </span>
-                <div style={{ margin: '16px 24px 24px 24px', borderRadius: '6px', backgroundColor: '#2B2F33', boxShadow: '0px 0px 5px 0px #00000033', padding: '0px 28px' }}>
+                <span style={{ fontFamily: 'Noto Sans TC', fontSize: '14px', fontWeight: '400', color: '#FFF', display: 'block' }}>
+                  {addressSearchString}
+                </span>
+                <div style={{ margin: '16px 0px 24px 0px', borderRadius: '6px', backgroundColor: '#2B2F33', boxShadow: '0px 0px 5px 0px #00000033', padding: '0px 28px', overflowY: 'auto', height: 'calc(100vh - 340px)' }}>
                   <div style={{ height: '52px', display: 'flex', alignItems: 'center' }}>
                     <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '700', color: '#FFF' }}>站點評分表</span>
                   </div>
                   <hr style={{ borderColor: '#565C66' }}></hr>
-                  <div>圖表</div>
+                  <div style={{ width: '100%', height: '255px', marginTop: '32px' }}>
+                    <GaugeBasic
+                      dataValue={6}
+                    />
+                  </div>
+                  <div style={{ position: 'relative', top: '-10px' }}>
+                    <span style={{ fontFamily: 'Noto Sans TC', fontSize: '10px', fontWeight: '400', color: '#FFF', display: 'block' }}>
+                      今年度建站預估度數總額
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                      <span style={{ fontFamily: 'Noto Sans TC', fontSize: '24px', fontWeight: '700', color: '#FFF', display: 'block' }}>
+                        2376
+                      </span>
+                      <span style={{ fontFamily: 'Noto Sans TC', fontSize: '10px', fontWeight: '400', color: '#FFF', display: 'block' }}>
+                        &nbsp;kWh
+                      </span>
+                    </div>
+                    <div style={{ width: '100%', height: '160px', marginTop: '8px' }}>
+                      <BarBasic />
+                    </div>
+                  </div>
                 </div>
               </div> : null}
           </div>

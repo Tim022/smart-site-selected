@@ -308,3 +308,45 @@
   z-index: 666;
   pointer-events: none;
 }
+
+.pinConfirmNotification {
+  background: #454B52;
+  padding: 10px 16px !important;
+  width: 248px !important;
+  height: 54px;
+  border-radius: 6px;
+}
+
+.pinConfirmNotificationMessage {
+  display: flex;
+  align-items: center;
+  color: #FFFFFF !important;
+  font-family: 'Noto Sans TC';
+  font-size: 16px !important;
+  font-weight: 400;
+}
+
+.pinConfirmNotification :global(.ant-notification-notice-content) {
+  width: auto;
+}
+
+.pinConfirmNotification :global(.ant-notification-notice-message) {
+  margin-bottom: 0px !important;
+}
+
+.btnPinConfirm {
+  margin-left: auto;
+  font-family: 'Noto Sans TC';
+  font-weight: 700;
+  color: #FFFFFF;
+  background: #ffffff00;
+  width: 76px;
+  height: 34px;
+  border-radius: 6px;
+}
+
+.btnPinConfirm:hover {
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+  background: #ffffff27 !important;
+}
