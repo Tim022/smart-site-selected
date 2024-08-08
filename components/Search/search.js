@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import styles from './styles.module.css'
 import { SearchIcon, CloseIcon, InfoCircleIcon, ChevronLeftIcon } from '@/components/Icons/icons'
-import { GaugeBasic, BarBasic } from '@/components/Charts/charts'
+import { GaugeBasic, BarThisYearBase } from '@/components/Charts/charts'
 import { Button, Select, Form, Input, InputNumber, Tabs, Row, Col } from 'antd/lib'
 
 export const AddressSearch = (
@@ -389,8 +389,14 @@ export const AddressSearch = (
                         &nbsp;kWh
                       </span>
                     </div>
-                    <div style={{ width: '100%', height: '160px', marginTop: '8px' }}>
-                      <BarBasic />
+                    <div style={{ width: '109%', height: '160px',position: 'relative',left: '50%',transform: 'translate(-50%, 0%)' }}>
+                      <BarThisYearBase />
+                    </div>
+                    <div style={{display: 'flex',width: '108%',alignItems: 'center',background: '#454B52',borderRadius: '6px',padding: '8px',gap: '8px',marginTop:'32px',position: 'relative',left: '50%',transform: 'translate(-50%, 0%)'}}>
+                      <InfoCircleIcon size={16} color='#FFFFFF' />
+                      <span style={{ fontFamily: 'Noto Sans TC', fontSize: '10px', fontWeight: '400', color: '#FFF', display: 'block' }}>
+                        計算依據現有資料推估，實際建站後之營業度數將根據未來的市場狀況、競爭環境、消費者偏好等因素而有所變動。
+                      </span>
                     </div>
                   </div>
                 </div>

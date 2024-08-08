@@ -105,16 +105,26 @@ export const GaugeBasic = ({ dataValue, innerRef }) => {
   );
 };
 
-export const BarBasic = ({ dataValue, innerRef }) => {
+export const BarThisYearBase = ({ dataValue, innerRef }) => {
   let option = {
+    grid:{
+      containLabel:true,
+      top:'22%',
+      right:'2%',
+      bottom:0,
+      left:'2%'
+    },
     xAxis: {
       type: 'category',
-      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      data: ['2024', '2025', '2026', '2027', '2028', '2029', '2030'],
       axisLine: {
         show: false
       },
       axisTick: {
         show: false
+      },
+      axisLabel:{
+        color:'#FFF'
       }
     },
     yAxis: {
@@ -126,15 +136,9 @@ export const BarBasic = ({ dataValue, innerRef }) => {
         show: false
       }
     },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'shadow',
-      },
-    },
     series: [
       {
-        data: [120, 200, 150, 80, 70, 110, 130],
+        data: [12000, 20000, 15000, 8000, 7000, 11000, 13000],
         type: 'bar',
         itemStyle: {
           color: '#866DFF',
@@ -146,26 +150,45 @@ export const BarBasic = ({ dataValue, innerRef }) => {
         },
         emphasis: {
           label: {
-            show: true, // hover 時顯示 label
-            position: 'top', // 標籤顯示在柱狀圖上方
-            color: '#ff0000', // hover 時 label 的顏色
-            fontWeight: 'bold', // hover 時 label 的字體加粗
+            show: true,
+            position: 'top',
+            color: '#FFFFFF',
+            fontWeight: 'bold',
             formatter: function (params) {
-              // 使用 CSS 模擬圓角效果的內容
-              return `{a|${params.value} units}`;
+                return `{a|${params.value}}\n{arrow|}`;
             },
             rich: {
-              a: {
-                backgroundColor: '#f5f5f5', // 背景顏色
-                borderColor: '#ccc', // 邊框顏色
-                borderWidth: 1, // 邊框寬度
-                borderRadius: 10, // 圓角半徑
-                padding: [10, 15], // 內邊距
-                align: 'center',
-                verticalAlign: 'middle',
-              }
+                a: {
+                    backgroundColor: '#565C66',
+                    borderRadius: 10,
+                    padding: [5, 7],
+                    align: 'center',
+                    verticalAlign: 'middle',
+                },
+                arrow: {
+                  backgroundColor: '#565C66',
+                  padding: [0, 0,0,0],
+                  align: 'center',
+                  verticalAlign: 'top',
+                  height: 8,
+                  width: 33,
+                  backgroundColor: {
+                    image: 'data:image/svg+xml;base64,' + btoa(`
+                        <svg width="33" height="8" viewBox="0 0 33 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g clip-path="url(#clip0_2073_16321)">
+                            <path d="M9.49849 0.000221252L16.5696 7.07129L23.6406 0.000221252L9.49849 0.000221252Z" fill="#565C66"/>
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_2073_16321">
+                              <rect width="33" height="7.07107" fill="white"/>
+                            </clipPath>
+                          </defs>
+                        </svg>
+                    `)
+                  }
+                }
             }
-          }
+        }
         }
       },
     ]
