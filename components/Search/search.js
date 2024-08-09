@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import styles from './styles.module.css'
 import { SearchIcon, CloseIcon, InfoCircleIcon, ChevronLeftIcon } from '@/components/Icons/icons'
-import { GaugeBasic, BarThisYearBase } from '@/components/Charts/charts'
+import { SiteRateBasic, PenetrationRateBasic, PieBasic, PieBasic2, SunburstBasic, BarThisYearBase } from '@/components/Charts/charts'
 import { Button, Select, Form, Input, InputNumber, Tabs, Row, Col } from 'antd/lib'
 
 export const AddressSearch = (
@@ -15,7 +15,8 @@ export const AddressSearch = (
     setHighlightPolygon,
     setMapPinning,
     openNotification,
-    closeNotification
+    closeNotification,
+    isDrawed
   }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchBoxClassName, setSearchBoxClassName] = useState(styles.searchAreaClose);
@@ -116,6 +117,103 @@ export const AddressSearch = (
     setSearchBoxClassName(styles.searchAreaExpand)
     setSearchByClickArea(false)
   };
+
+  const cpoContent = (type) => {
+    let intend = [];
+
+    let scaleTitle = '';
+    if (type == 1) {
+      scaleTitle = '總車樁比';
+    } else if (type == 2) {
+      scaleTitle = 'AC車樁比';
+    } else if (type == 3) {
+      scaleTitle = 'DC車樁比';
+    }
+
+    intend.push(
+      <div>
+        <div style={{ height: '74px', background: '#454B52', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline' }}>
+            <span className={styles.textS20W400}>{scaleTitle}&nbsp;&nbsp;</span>
+            <span className={styles.textS30W700}>9:1</span>
+          </div>
+        </div>
+        <div className={styles.textS12W700} style={{ marginTop: '16px' }}>
+          樁數統計
+        </div>
+        <div style={{ width: '100%', height: '228px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '213px', height: '100%', position: 'relative', left: '-30px' }}>
+            <PieBasic
+              type={type}
+            />
+          </div>
+          <div style={{ position: 'relative', left: '-41px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '174%' }}>
+              <span className={styles.textS12W700}>
+                星舟快充
+              </span>
+              <span className={styles.textS12W700}>
+                6
+              </span>
+            </div>
+            <hr style={{ width: '174%', borderColor: '#565C66', margin: '8px 0px' }}></hr>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '174%' }}>
+              <span className={styles.textS12W400}>
+                共 6
+              </span>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px' }}>
+          <span className={styles.textS12W700} style={{ marginRight: '4px' }}>站點數統計</span>
+          <InfoCircleIcon size={14} color='#FFFFFF' />
+        </div>
+        <div style={{ width: '100%', height: '228px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '213px', height: '100%', position: 'relative', left: '-30px' }}>
+            <PieBasic
+              type={type}
+            />
+          </div>
+          <div style={{ position: 'relative', left: '-41px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '174%' }}>
+              <span className={styles.textS12W700}>
+                星舟快充
+              </span>
+              <span className={styles.textS12W700}>
+                6
+              </span>
+            </div>
+            <hr style={{ width: '174%', borderColor: '#565C66', margin: '8px 0px' }}></hr>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '174%' }}>
+              <span className={styles.textS12W400}>
+                共 6
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    return intend;
+  }
+
+  const cpoTabsItems = [
+    {
+      key: '1',
+      label: '所有種類',
+      children: cpoContent(1),
+    },
+    {
+      key: '2',
+      label: 'AC樁',
+      children: cpoContent(2),
+    },
+    {
+      key: '3',
+      label: 'DC樁',
+      children: cpoContent(3),
+    }
+  ];
+
   const items = [
     {
       key: '1',
@@ -129,8 +227,8 @@ export const AddressSearch = (
             </div>
             <hr style={{ borderColor: '#565C66', margin: '16px 0px' }}></hr>
             <div style={{ marginBottom: '16px' }}>
-              <span style={{ fontFamily: 'Noto Sans CJK TC', fontSize: '16px', fontWeight: '400', color: '#FFF', marginBottom: '8px' }}>位置資訊</span>
-              <div style={{ borderRadius: '100px', height: '38px', backgroundColor: '#676D73', display: 'flex', alignItems: 'center' }}>
+              <span className={styles.textS16W400}>位置資訊</span>
+              <div style={{ borderRadius: '100px', height: '38px', backgroundColor: '#676D73', display: 'flex', alignItems: 'center', marginTop: '8px' }}>
                 <div className={`${styles.typeSelectedBackground} ${searchMethodClassName}`}>
                 </div>
                 <button onClick={handlesearchMethod1} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>自行輸入</button>
@@ -214,7 +312,7 @@ export const AddressSearch = (
                         <div className={showFormValidInfo2 ? styles.formValidInfoMoveIn : styles.formValidInfoMoveOut} >
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px' }}>
                             <InfoCircleIcon size={14} color='#4DBFB6' />
-                            <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#4DBFB6', marginLeft: '4px' }}>
+                            <span className={styles.textS16W400} style={{ marginLeft: '4px' }}>
                               請輸入位置資訊
                             </span>
                           </div>
@@ -245,7 +343,7 @@ export const AddressSearch = (
                           <div className={showFormValidInfo || searchMethodClassName == styles.typeSwitch2 ? styles.formValidInfoMoveIn : styles.formValidInfoMoveOut} >
                             <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px' }}>
                               <InfoCircleIcon size={14} color='#4DBFB6' />
-                              <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#4DBFB6', marginLeft: '4px' }}>
+                              <span className={styles.textS16W400} style={{ marginLeft: '4px' }}>
                                 {searchMethodClassName == styles.typeSwitch1 ? '請輸入位置資訊' : '拖曳地圖以移動大頭針'}
                               </span>
                             </div>
@@ -255,7 +353,7 @@ export const AddressSearch = (
 
                     <Row style={showFormValidInfo || searchMethodClassName == styles.typeSwitch2 ? { marginTop: '36px' } : { marginTop: '20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#FFF' }}>場域面積(㎡)</span>
+                        <span className={styles.textS16W400}>場域面積(㎡)</span>
                       </div>
                       <Form.Item
                         name='area'
@@ -277,7 +375,7 @@ export const AddressSearch = (
 
                     <Row style={{ marginTop: '20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '400', color: '#FFF' }}>車格數</span>
+                        <span className={styles.textS16W400}>車格數</span>
                         <InfoCircleIcon color='#FFF' size='16' innerStyle={{ marginLeft: '4px' }} />
                       </div>
                       <Form.Item
@@ -346,63 +444,139 @@ export const AddressSearch = (
                 <button onClick={handleresultType3} style={{ width: '116px', height: '34px', borderRadius: '100px', color: '#FFF', zIndex: '2' }}>站點評分</button>
               </div>
             </div>
-            {resultTypeClassName == styles.typeSwitch1 ?
-              <div>
-                人口統計<br />
-                小客車統計<br />
-                道路小客車流統計<br />
-                POI統計
-              </div> : null}
-
-            {resultTypeClassName == styles.typeSwitch2 ?
-              <div>
-                CPO統計
-              </div> : null}
-
-            {resultTypeClassName == styles.typeSwitch3 ?
-              <div>
-                <span style={{ fontFamily: 'Noto Sans TC', fontSize: '20px', fontWeight: '700', color: '#FFF', marginTop: '24px', display: 'block' }}>
-                  搜集範圍：方圓3公里
-                </span>
-                <span style={{ fontFamily: 'Noto Sans TC', fontSize: '14px', fontWeight: '400', color: '#FFF', display: 'block' }}>
-                  {addressSearchString}
-                </span>
-                <div style={{ margin: '16px 0px 24px 0px', borderRadius: '6px', backgroundColor: '#2B2F33', boxShadow: '0px 0px 5px 0px #00000033', padding: '0px 28px', overflowY: 'auto', height: 'calc(100vh - 340px)' }}>
-                  <div style={{ height: '52px', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Noto Sans TC', fontSize: '16px', fontWeight: '700', color: '#FFF' }}>站點評分表</span>
+            <div>
+              <span className={styles.textS20W700} style={{ marginTop: '24px', display: 'block' }}>
+                搜集範圍：方圓3公里
+              </span>
+              <span className={styles.textS14W400} style={{ display: 'block' }}>
+                {addressSearchString}
+              </span>
+              {resultTypeClassName == styles.typeSwitch1 ?
+                <div style={{ margin: '16px 0px 24px 0px', overflowY: 'auto', overflowX: 'hidden', height: 'calc(100vh - 340px)' }}>
+                  <div style={{ borderRadius: '6px', backgroundColor: '#2B2F33', boxShadow: '0px 0px 5px 0px #00000033', padding: '24px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <span className={styles.textS16W700}>
+                        人口統計
+                      </span>
+                      <InfoCircleIcon color='#FFF' size='16' innerStyle={{ marginLeft: '4px' }} />
+                    </div>
+                    <hr style={{ borderColor: '#565C66', margin: '16px 0px' }}></hr>
+                    <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                      <span className={styles.textS36W700} style={{ display: 'block' }}>
+                        1430
+                      </span>
+                      <span className={styles.textS16W700} style={{ display: 'block' }}>
+                        &nbsp;戶
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ fontFamily: 'Noto Sans CJK TC', fontSize: '16px', fontWeight: '400', color: '#C3CED9' }}>
+                        共 5847 人口
+                      </span>
+                    </div>
                   </div>
-                  <hr style={{ borderColor: '#565C66' }}></hr>
+                  <div style={{ marginTop: '8px', borderRadius: '6px', backgroundColor: '#2B2F33', boxShadow: '0px 0px 5px 0px #00000033', padding: '24px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <span className={styles.textS16W700}>
+                        小客車統計
+                      </span>
+                      <InfoCircleIcon color='#FFF' size='16' innerStyle={{ marginLeft: '4px' }} />
+                    </div>
+                    <hr style={{ borderColor: '#565C66', margin: '16px 0px' }}></hr>
+                    <div style={{ width: 'fit-content', height: '228px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '140px', display: 'flex', alignItems: 'flex-end' }}>
+                        <span className={styles.textS36W700} style={{ maxWidth: '120px', display: 'block', wordWrap: 'break-word' }}>
+                          12,234
+                        </span>
+                        <span className={styles.textS16W700} style={{ display: 'block', position: 'relative', top: '-9px' }}>
+                          &nbsp;台
+                        </span>
+                      </div>
+                      <div style={{ width: '180px', height: '100%', position: 'relative', left: '-11px' }}>
+                        <PenetrationRateBasic />
+                      </div>
+                    </div>
+
+                    <div style={{ height: '52px', background: '#454B52', borderRadius: '6px 6px 0 0', padding: '16px 16px 12px 16px' }}>
+                      <div style={{ width: '100%', height: '195px' }}>
+                        <span className={styles.textS14W700} style={{ marginBottom: '12px', display: 'block' }}>所有小客車組成</span>
+                        <hr style={{ borderColor: '#565C66' }}></hr>
+                      </div>
+                    </div>
+                    <div style={{ width: '287px', background: '#454B52', borderRadius: '0 0 6px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
+                      <div style={{ width: '100%', height: '195px' }}>
+                        <SunburstBasic />
+                      </div>
+                    </div>
+
+                    <div style={{ height: '52px', background: '#454B52', borderRadius: '6px 6px 0 0', padding: '16px 16px 12px 16px', marginTop: '16px' }}>
+                      <div style={{ width: '100%', height: '195px' }}>
+                        <span className={styles.textS14W700} style={{ marginBottom: '12px', display: 'block' }}>電動小客車組成</span>
+                        <hr style={{ borderColor: '#565C66' }}></hr>
+                      </div>
+                    </div>
+                    <div style={{ width: '287px', background: '#454B52', borderRadius: '0 0 6px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', }}>
+                      <div style={{ width: '100%', height: '195px' }}>
+                        <PieBasic2 />
+                      </div>
+                    </div>
+                  </div>
+                </div> : null}
+
+              {resultTypeClassName == styles.typeSwitch2 ?
+                <div style={{ margin: '16px 0px 24px 0px', borderRadius: '6px', backgroundColor: '#2B2F33', boxShadow: '0px 0px 5px 0px #00000033', padding: '24px 24px 0px 24px', overflowY: 'auto', height: 'calc(100vh - 340px)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
+                    <span className={styles.textS16W700}>
+                      CPO 統計
+                    </span>
+                    <InfoCircleIcon color='#FFF' size='16' innerStyle={{ marginLeft: '4px' }} />
+                  </div>
+                  <Tabs
+                    defaultActiveKey='1'
+                    items={cpoTabsItems}
+                    className={styles.cpoTabs}
+                    animated={true}
+                  />
+                </div> : null}
+
+              {resultTypeClassName == styles.typeSwitch3 ?
+                <div style={{ margin: '16px 0px 24px 0px', borderRadius: '6px', backgroundColor: '#2B2F33', boxShadow: '0px 0px 5px 0px #00000033', padding: '24px 24px 0px 24px', overflowY: 'auto', height: 'calc(100vh - 340px)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span className={styles.textS16W700}>站點評分表</span>
+                  </div>
+                  <hr style={{ borderColor: '#565C66', marginTop: '16px' }}></hr>
                   <div style={{ width: '100%', height: '255px', marginTop: '32px' }}>
-                    <GaugeBasic
+                    <SiteRateBasic
                       dataValue={6}
                     />
                   </div>
                   <div style={{ position: 'relative', top: '-10px' }}>
-                    <span style={{ fontFamily: 'Noto Sans TC', fontSize: '10px', fontWeight: '400', color: '#FFF', display: 'block' }}>
+                    <span className={styles.textS10W400} style={{ display: 'block' }}>
                       今年度建站預估度數總額
                     </span>
                     <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                      <span style={{ fontFamily: 'Noto Sans TC', fontSize: '24px', fontWeight: '700', color: '#FFF', display: 'block' }}>
+                      <span className={styles.textS24W700} style={{ display: 'block' }}>
                         2376
                       </span>
-                      <span style={{ fontFamily: 'Noto Sans TC', fontSize: '10px', fontWeight: '400', color: '#FFF', display: 'block' }}>
+                      <span className={styles.textS10W400} style={{ display: 'block' }}>
                         &nbsp;kWh
                       </span>
                     </div>
-                    <div style={{ width: '109%', height: '160px',position: 'relative',left: '50%',transform: 'translate(-50%, 0%)' }}>
+                    <div style={{ width: '109%', height: '160px', position: 'relative', left: '50%', transform: 'translate(-50%, 0%)' }}>
                       <BarThisYearBase />
                     </div>
-                    <div style={{display: 'flex',width: '108%',alignItems: 'center',background: '#454B52',borderRadius: '6px',padding: '8px',gap: '8px',marginTop:'32px',position: 'relative',left: '50%',transform: 'translate(-50%, 0%)'}}>
+                    <div style={{ display: 'flex', width: '108%', alignItems: 'center', background: '#454B52', borderRadius: '6px', padding: '8px', gap: '8px', marginTop: '32px', position: 'relative', left: '50%', transform: 'translate(-50%, 0%)' }}>
                       <InfoCircleIcon size={16} color='#FFFFFF' />
-                      <span style={{ fontFamily: 'Noto Sans TC', fontSize: '10px', fontWeight: '400', color: '#FFF', display: 'block' }}>
+                      <span className={styles.textS10W400} style={{ display: 'block' }}>
                         計算依據現有資料推估，實際建站後之營業度數將根據未來的市場狀況、競爭環境、消費者偏好等因素而有所變動。
                       </span>
                     </div>
                   </div>
-                </div>
-              </div> : null}
+                </div> : null}
+            </div>
+
           </div>
-        </div>),
+        </div >),
     }
   ];
 

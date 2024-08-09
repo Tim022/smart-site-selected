@@ -44,7 +44,7 @@
   box-shadow: 0px 0px 4px 0px #FFFFFF40 inset;
   padding: 10px 16px;
   border-radius: 100px;
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-size: 14px;
   font-weight: 400;
   color: #FFFFFF;
@@ -109,14 +109,14 @@
 .searchArea :global(.ant-select-selector) {
   background: #565C66 !important;
   border: 1px solid #565C66 !important;
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-weight: 400;
   color: #FFFFFF;
 }
 
 .searchArea :global(.ant-select-selection-placeholder),
 .searchArea :global(.ant-select-single.ant-select-open .ant-select-selection-item) {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-weight: 400;
   color: #A1AAB2;
 }
@@ -158,7 +158,7 @@
   border-width: 1px;
   border-color: #565C66;
   border-radius: 6px;
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-weight: 400;
   color: #FFFFFF;
   z-index: 5;
@@ -174,7 +174,7 @@
 
 .inputDark::placeholder,
 .inputDark :global(.ant-input-number-input)::placeholder {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-weight: 400;
   color: #A1AAB2;
 }
@@ -206,7 +206,7 @@
 }
 
 .btnPrimary {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-weight: 700;
   color: #FFFFFF;
   background: #4DBFB6;
@@ -220,7 +220,7 @@
 }
 
 .btnReset {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-weight: 700;
   color: #FFFFFF;
   background: #ffffff00;
@@ -233,4 +233,118 @@
   color: #FFFFFF !important;
   border-color: #FFFFFF !important;
   background: #ffffff27 !important;
+}
+
+.cpoTabs :global(.ant-tabs-nav) {
+  display: flex !important;
+}
+
+.cpoTabs :global(.ant-tabs-tab) {
+  font-family: "Noto Sans CJK TC";
+  color: #FFF;
+}
+
+.cpoTabs :global(.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
+  font-family: "Noto Sans CJK TC";
+  color: #866DFF;
+}
+
+.cpoTabs :global(.ant-tabs-nav::before) {
+  border-bottom: 1px solid #2B2F33;
+}
+
+.cpoTabs :global(.ant-tabs-nav-list) {
+  border-bottom: 1px solid #0000002E;
+}
+
+.cpoTabs :global(.ant-tabs-tab-active) {
+  border-bottom: 1px solid #866DFF;
+}
+
+.cpoTabs :global(.ant-tabs-ink-bar) {
+  background: #866DFF;
+}
+
+.textS10W400 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 10px;
+  font-weight: 400;
+  color: #FFFFFF;
+}
+
+.textS12W400 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 12px;
+  font-weight: 400;
+  color: #FFFFFF;
+}
+
+.textS12W700 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.textS14W400 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 14px;
+  font-weight: 400;
+  color: #FFFFFF;
+}
+
+.textS14W700 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.textS16W400 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 16px;
+  font-weight: 400;
+  color: #FFFFFF;
+}
+
+.textS16W700 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.textS20W400 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 20px;
+  font-weight: 400;
+  color: #FFFFFF;
+}
+
+.textS20W700 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.textS24W700 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.textS30W700 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 30px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.textS36W700 {
+  font-family: "Noto Sans CJK TC";
+  font-size: 36px;
+  font-weight: 700;
+  color: #FFFFFF;
 }

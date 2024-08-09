@@ -1,5 +1,5 @@
 @font-face {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-style: normal;
   font-weight: 100;
   src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Thin.woff2) format('woff2'),
@@ -8,7 +8,7 @@
 }
 
 @font-face {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-style: normal;
   font-weight: 300;
   src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Light.woff2) format('woff2'),
@@ -17,7 +17,7 @@
 }
 
 @font-face {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-style: normal;
   font-weight: 400;
   src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff2) format('woff2'),
@@ -26,7 +26,7 @@
 }
 
 @font-face {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-style: normal;
   font-weight: 500;
   src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Medium.woff2) format('woff2'),
@@ -35,7 +35,7 @@
 }
 
 @font-face {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-style: normal;
   font-weight: 700;
   src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Bold.woff2) format('woff2'),
@@ -44,7 +44,7 @@
 }
 
 @font-face {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-style: normal;
   font-weight: 900;
   src: url(//fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Black.woff2) format('woff2'),
@@ -92,7 +92,7 @@
 
 .gradiantLevelSpan {
   color: #FFFFFF;
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-size: 14px;
   font-weight: 400;
 }
@@ -125,7 +125,7 @@
 .scaleValue {
   display: inline-block;
   color: #FFFFFF;
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-weight: 400;
   font-size: 14px;
   margin-right: 22px;
@@ -234,7 +234,7 @@
 }
 
 .mapLoadingModal :global(p) {
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-size: 16px;
   font-weight: 700;
   color: #E1EAF2;
@@ -321,7 +321,7 @@
   display: flex;
   align-items: center;
   color: #FFFFFF !important;
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-size: 16px !important;
   font-weight: 400;
 }
@@ -336,7 +336,7 @@
 
 .btnPinConfirm {
   margin-left: auto;
-  font-family: 'Noto Sans TC';
+  font-family: 'Noto Sans CJK TC';
   font-weight: 700;
   color: #FFFFFF;
   background: #ffffff00;
